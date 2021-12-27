@@ -10,13 +10,6 @@ struct Coordinate {
 	y: usize, // 0: bottommost
 }
 
-struct TextBox {
-	width: i8,
-	height: i8,
-	anchor_point: Coordinate,
-	text: String,
-}
-
 enum SpecialCharacter {
 	None,
 	LineBreak,
@@ -30,11 +23,6 @@ struct TextBoxCharacter {
 
 fn main() {
 	let mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH] = [[' '; CANVAS_HEIGHT]; CANVAS_WIDTH];
-	canvas[0][0] = '└';
-	canvas[CANVAS_WIDTH - 1][0] = '┘';
-	canvas[0][CANVAS_HEIGHT - 1] = '┌';
-	canvas[CANVAS_WIDTH - 1][CANVAS_HEIGHT - 1] = '┐';
-
 	canvas = draw_frame(
 		canvas,
 		Coordinate {
@@ -47,55 +35,6 @@ fn main() {
 		},
 		String::from(""),
 	);
-	
-	/*
-	let write_text = TextBox {
-		width: 25,
-		height: 14,
-		anchor_point: Coordinate {
-			x: 4,
-			y: 26,
-		},
-		text: String::from("this\n is an example of speex, an audio compression codec specifically tuned for the reproduction of human speech. the quick brown fox jumps over the lazy dog.\nEmpty space: [\t\t\t]"),
-	};
-	canvas = write_textbox(canvas, write_text);
-	*/
-	
-
-//	canvas = fill(
-//		canvas,
-//
-//		Coordinate {
-//			x:8,
-//			y:8,
-//		},
-//
-//		Coordinate {
-//			x:4,
-//			y:4,
-//		},
-//
-//
-//
-//		'x',
-//	);
-//	canvas = draw_frame(
-//		canvas,
-//
-//
-//		Coordinate {
-//			x:4,
-//			y:4,
-//		},
-//
-//		Coordinate {
-//			x:40,
-//			y:20,
-//		},
-//
-//
-//		String::from(""),
-//	);
 	
 	output_canvas(canvas);
 	loop {
@@ -130,7 +69,7 @@ fn issue_command(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], command: Str
 		break;
 	}
 	match base_command {
-		"/fill" | "/frame" => {
+		"/fill" | "/frame" | "/text" => {
 			let mut i:i8 = -1;
 			let mut fill_from = Coordinate {
 				x: 0,
@@ -140,7 +79,7 @@ fn issue_command(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], command: Str
 				x: 0,
 				y: 0,
 			};
-			let mut fill_char = "";
+			let mut fill_char = String::from("");
 			for str in command.split(" ") {
 				i += 1;
 				let string = String::from(str);
@@ -153,15 +92,20 @@ fn issue_command(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], command: Str
 						fill_to = parse_comma_separated_coordinate_string(string);
 					},
 					3 => {
-						fill_char = str;
+						fill_char = String::from(str);
 					}
-					_ => break,
+					_ => {
+						let mut new_str = String::from(" ");
+						new_str.push_str(str);
+						fill_char.push_str(&new_str);
+					},
 				}
 			}
-			if base_command == "/fill" {
-				canvas = fill(canvas, fill_from, fill_to, fill_char.chars().nth(0).unwrap_or('?'));
-			} else {
-				canvas = draw_frame(canvas, fill_from, fill_to, String::from(fill_char));
+			match base_command {
+				"/fill" => canvas = fill(canvas, fill_from, fill_to, fill_char.chars().nth(0).unwrap_or('?')),
+				"/frame" => canvas = draw_frame(canvas, fill_from, fill_to, String::from(fill_char)),
+				"/text" => canvas = write_textbox(canvas, fill_from, fill_to, String::from(fill_char)),
+				_ => (),
 			}
 		},
 		_ => ()
@@ -205,10 +149,9 @@ fn parse_comma_separated_coordinate_string(string: String) -> Coordinate{
 	coord
 }
 
-fn write_textbox(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], text_box: TextBox) -> [[char; CANVAS_HEIGHT]; CANVAS_WIDTH]{
-	let anchor_x = text_box.anchor_point.x;
-	let anchor_y = text_box.anchor_point.y;
-	let text_chars = text_box.text.chars();
+//fn write_textbox(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], text_box: TextBox) -> [[char; CANVAS_HEIGHT]; CANVAS_WIDTH]{
+fn write_textbox(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], write_from: Coordinate, write_to: Coordinate, text: String) -> [[char; CANVAS_HEIGHT]; CANVAS_WIDTH]{
+	let text_chars = text.chars();
 	let mut text_box_characters = Vec::new();
 	for text_char in text_chars {
 		let mut new_text_box_character = TextBoxCharacter {
@@ -224,8 +167,12 @@ fn write_textbox(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], text_box: Te
 	}
 	let mut char_index = 0;
 	let mut word_length = 0;
-	'text_box_loop: for y in 0..text_box.height {
-		for x in 0..text_box.width {
+
+	let container_coords = sort_box_coordinates(write_from, write_to);
+	let width = container_coords[1].x - container_coords[0].x + 1;
+	let height = container_coords[1].y - container_coords[0].y + 1;
+	'text_box_loop: for y in 0..height {
+		for x in 0..width {
 			if word_length == 0 {
 				word_length = 0;
 				'word_char_counting: for i in char_index..text_box_characters.len() {
@@ -246,15 +193,20 @@ fn write_textbox(mut canvas: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH], text_box: Te
 					}
 				}
 			}
-			if word_length > text_box.width - x && word_length < text_box.width {
+			if word_length > width - x && word_length <= width {
 				break;
 			}
 			if matches!(text_box_characters[char_index].special_character, SpecialCharacter::LineBreak){
 				char_index += 1;
-				break;
+				word_length = 0;
+				if x != 0 {
+					break;
+				} else {
+					continue;
+				}
 			}
 			if !matches!(text_box_characters[char_index].special_character, SpecialCharacter::Empty){
-				canvas[anchor_x + x as usize][anchor_y - y as usize] = text_box_characters[char_index].character;
+				canvas[container_coords[0].x + x][container_coords[1].y - y] = text_box_characters[char_index].character;
 			}
 			if word_length > 0 {
 				word_length -= 1;
