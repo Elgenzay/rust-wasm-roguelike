@@ -269,6 +269,14 @@ fn get_input(mut canvas: Canvas) -> Canvas{
 	return canvas;
 }
 
+/// Process commands
+/// 
+/// Examples:
+/// 
+/// - /fill 20,20 25,25 x
+/// - /text 50,20 60,5 the quick brown fox jumps over the lazy dog
+/// - /frame 49,21 61,4
+/// - /frame 4,4 15,15 abcdef
 fn issue_command(mut canvas: Canvas, command: String) -> Canvas{
 	let mut base_command = "";
 	for s in command.split(" ") {
