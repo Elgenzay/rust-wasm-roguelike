@@ -81,7 +81,7 @@ pub mod canvas {
 			&mut self,
 			draw_from: Coordinate,
 			draw_to: Coordinate,
-			fills: String
+			fills: &str
 		){
 			let mut fill_chars = [' '; 6];
 			let mut i = 0;
@@ -132,7 +132,7 @@ pub mod canvas {
 			&mut self,
 			write_from: Coordinate,
 			write_to: Coordinate,
-			text: String
+			text: &str
 		) {
 			let text_chars = text.chars();
 			let mut text_box_characters = Vec::new();
@@ -248,7 +248,7 @@ pub mod canvas {
 			std::process::exit(0);
 		}
 		if input.chars().count() != 0 && &input[0..1] == "/" {
-			canvas = issue_command(canvas, input);
+			canvas = issue_command(canvas, &input[..]);
 			canvas.print();
 			canvas = get_input(canvas);
 		}
@@ -263,7 +263,7 @@ pub mod canvas {
 	/// - /text 50,20 60,5 the quick brown fox jumps over the lazy dog
 	/// - /frame 49,21 61,4
 	/// - /frame 4,4 15,15 abcdef
-	pub fn issue_command(mut canvas: Canvas, command: String) -> Canvas{
+	pub fn issue_command(mut canvas: Canvas, command: &str) -> Canvas{
 		let mut base_command = "";
 		for s in command.split(" ") {
 			base_command = s;
@@ -277,14 +277,13 @@ pub mod canvas {
 				let mut fill_char = String::from("");
 				for str in command.split(" ") {
 					i += 1;
-					let string = String::from(str);
 					match i {
 						0 => continue,
 						1 => {
-							fill_from = parse_comma_separated_coordinate_string(string);
+							fill_from = parse_comma_separated_coordinate_string(&str);
 						},
 						2 => {
-							fill_to = parse_comma_separated_coordinate_string(string);
+							fill_to = parse_comma_separated_coordinate_string(&str);
 						},
 						3 => {
 							fill_char = String::from(str);
@@ -298,8 +297,8 @@ pub mod canvas {
 				}
 				match base_command {
 					"/fill" => canvas.fill(fill_from, fill_to, fill_char.chars().nth(0).unwrap_or('?')),
-					"/frame" => canvas.draw_frame(fill_from, fill_to, String::from(fill_char)),
-					"/text" => canvas.write_text(fill_from, fill_to, String::from(fill_char)),
+					"/frame" => canvas.draw_frame(fill_from, fill_to, &fill_char[..]),
+					"/text" => canvas.write_text(fill_from, fill_to, &fill_char[..]),
 					_ => (),
 				}
 			},
@@ -308,7 +307,7 @@ pub mod canvas {
 		canvas
 	}
 
-	fn parse_comma_separated_coordinate_string(string: String) -> Coordinate{
+	fn parse_comma_separated_coordinate_string(string: &str) -> Coordinate{
 		let mut coord = Coordinate::new(0,0);
 		let mut i = 0;
 		for s in string.split(",") {

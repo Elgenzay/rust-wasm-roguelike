@@ -7,7 +7,7 @@ fn main() {
 	main_canvas.draw_frame(
 		engine::canvas::Coordinate::new(0,0),
 		engine::canvas::Coordinate::new(engine::canvas::CANVAS_WIDTH-1, engine::canvas::CANVAS_HEIGHT-1),
-		String::from(""),
+		"",
 	);
 	
 	main_canvas.print();
