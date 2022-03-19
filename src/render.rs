@@ -1,8 +1,5 @@
 pub mod canvas {
 
-	use std::io;
-	use std::io::prelude::*;
-
 	pub const CANVAS_WIDTH: usize = 119;
 	pub const CANVAS_HEIGHT: usize = 28;
 
@@ -206,8 +203,8 @@ pub mod canvas {
 	/// A point in 2D space
 	#[derive(Copy,Clone,Debug)]
 	pub struct Coordinate {
-		x: usize, // 0: leftmost
-		y: usize, // 0: bottommost
+		pub x: usize, // 0: leftmost
+		pub y: usize, // 0: bottommost
 	}
 
 	impl Coordinate {
@@ -235,96 +232,6 @@ pub mod canvas {
 	struct TextBoxCharacter {
 		character: char,
 		special_character: SpecialCharacter,
-	}
-
-	pub fn get_input(mut canvas: Canvas) -> Canvas{
-		let stdin = io::stdin();
-		let mut input: String = "".to_string();
-		for line in stdin.lock().lines() {
-			input = line.unwrap().to_string();
-			break;
-		}
-		if input.to_lowercase() == "exit"{
-			std::process::exit(0);
-		}
-		if input.chars().count() != 0 && &input[0..1] == "/" {
-			canvas = issue_command(canvas, &input[..]);
-			canvas.print();
-			canvas = get_input(canvas);
-		}
-		return canvas;
-	}
-
-	/// Process commands
-	/// 
-	/// Examples:
-	/// 
-	/// - /fill 20,20 25,25 x
-	/// - /text 50,20 60,5 the quick brown fox jumps over the lazy dog
-	/// - /frame 49,21 61,4
-	/// - /frame 4,4 15,15 abcdef
-	pub fn issue_command(mut canvas: Canvas, command: &str) -> Canvas{
-		let mut base_command = "";
-		for s in command.split(" ") {
-			base_command = s;
-			break;
-		}
-		match base_command {
-			"/fill" | "/frame" | "/text" => {
-				let mut i:i8 = -1;
-				let mut fill_from = Coordinate::new(0,0);
-				let mut fill_to = Coordinate::new(0,0);
-				let mut fill_char = String::from("");
-				for str in command.split(" ") {
-					i += 1;
-					match i {
-						0 => continue,
-						1 => {
-							fill_from = parse_comma_separated_coordinate_string(&str);
-						},
-						2 => {
-							fill_to = parse_comma_separated_coordinate_string(&str);
-						},
-						3 => {
-							fill_char = String::from(str);
-						}
-						_ => {
-							let mut new_str = String::from(" ");
-							new_str.push_str(str);
-							fill_char.push_str(&new_str);
-						},
-					}
-				}
-				match base_command {
-					"/fill" => canvas.fill(fill_from, fill_to, fill_char.chars().nth(0).unwrap_or('?')),
-					"/frame" => canvas.draw_frame(fill_from, fill_to, &fill_char[..]),
-					"/text" => canvas.write_text(fill_from, fill_to, &fill_char[..]),
-					_ => (),
-				}
-			},
-			_ => ()
-		}
-		canvas
-	}
-
-	fn parse_comma_separated_coordinate_string(string: &str) -> Coordinate{
-		let mut coord = Coordinate::new(0,0);
-		let mut i = 0;
-		for s in string.split(",") {
-			i += 1;
-			let result = s.parse::<i32>();
-			match result {
-				Ok(v) => {
-					match i {
-						1 => coord.x = v as usize,
-						2 => coord.y = v as usize,
-						_ => break,
-					}
-				},
-				Err(_) => break,
-			}
-		}
-		coord
 	}
 
 	fn sort_box_coordinates(coord_one: Coordinate, coord_two: Coordinate) -> [Coordinate; 2]{
