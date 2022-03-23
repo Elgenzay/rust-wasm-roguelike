@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+//for testing
 
 use std::io;
 use std::io::prelude::*;
@@ -5,19 +7,26 @@ use std::io::prelude::*;
 mod render;
 pub use render::canvas;
 
+mod worldgen;
+pub use worldgen::worldgen::room::*;
+
 fn main() {
-	let mut main_canvas = canvas::Canvas::new();
-	main_canvas.draw_frame(
-		canvas::Coordinate::new(0,0),
-		canvas::Coordinate::new(canvas::CANVAS_WIDTH-1, canvas::CANVAS_HEIGHT-1),
-		"",
-	);
-	
-	main_canvas.print();
-	loop {
-		main_canvas = get_input(main_canvas);
-		main_canvas.print();
-	}
+
+	let new_room = Room::new(RoomSize::LARGE);
+	println!("width: {}\nheight: {}", new_room.width, new_room.height);
+
+//	let mut main_canvas = canvas::Canvas::new();
+//	main_canvas.draw_frame(
+//		canvas::Coordinate::new(0,0),
+//		canvas::Coordinate::new(canvas::CANVAS_WIDTH-1, canvas::CANVAS_HEIGHT-1),
+//		"",
+//	);
+//	
+//	main_canvas.print();
+//	loop {
+//		main_canvas = get_input(main_canvas);
+//		main_canvas.print();
+//	}
 }
 
 fn get_input(mut canvas: canvas::Canvas) -> canvas::Canvas{
