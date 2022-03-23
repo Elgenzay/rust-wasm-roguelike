@@ -18,7 +18,6 @@ pub mod worldgen {
 			CUSTOM(i32),
 		}
 
-		#[derive(Debug)]
 		pub struct Room {
 			pub width: i32,
 			pub height: i32,
@@ -34,6 +33,7 @@ pub mod worldgen {
 				};
 				let deviation: i32 = (length_width_sum as f32
 					* (ROOM_SQUARE_DEVIATION_THRESHOLD as f32 * 0.01)) as i32;
+				//println!("deviation: {}", deviation);
 				if deviation == 0 {
 					return Room {
 						width: length_width_sum / 2,
@@ -55,5 +55,32 @@ pub mod worldgen {
 		}
 	}
 
-	struct Area {}
+	struct Area {
+		pub map: Vec<Vec<Tile>>,
+	}
+
+	impl Area {
+		pub fn new() -> Area {
+			Area { map: vec![] }
+		}
+
+		pub fn get_tile_at<X: Into<usize>, Y: Into<usize>>(&self, x: X, y: Y) -> Tile {
+			let x_usize = x.into();
+			let y_usize = y.into();
+
+			match &self.map.get(x_usize) {
+				Some(x_val) => match x_val.get(y_usize) {
+					Some(y_val) => *y_val,
+					None => Tile::EMPTY,
+				},
+				None => Tile::EMPTY,
+			}
+		}
+	}
+
+	#[derive(Copy, Clone)]
+	enum Tile {
+		EMPTY,
+		WALL,
+	}
 }
