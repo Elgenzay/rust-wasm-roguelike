@@ -1,4 +1,4 @@
-pub mod worldgen {
+pub mod world {
 
 	pub mod room {
 		use rand::Rng;
@@ -33,7 +33,6 @@ pub mod worldgen {
 				};
 				let deviation: i32 = (length_width_sum as f32
 					* (ROOM_SQUARE_DEVIATION_THRESHOLD as f32 * 0.01)) as i32;
-				//println!("deviation: {}", deviation);
 				if deviation == 0 {
 					return Room {
 						width: length_width_sum / 2,
@@ -55,32 +54,57 @@ pub mod worldgen {
 		}
 	}
 
-	struct Area {
-		pub map: Vec<Vec<Tile>>,
-	}
+	pub mod area {
+		
+		use std::collections::HashMap;
 
-	impl Area {
-		pub fn new() -> Area {
-			Area { map: vec![] }
+		pub struct Area {
+			pub map: HashMap<i32, HashMap<i32, Tile>>,
 		}
 
-		pub fn get_tile_at<X: Into<usize>, Y: Into<usize>>(&self, x: X, y: Y) -> Tile {
-			let x_usize = x.into();
-			let y_usize = y.into();
+		impl Area {
+			pub fn new() -> Area {
+				Area { map: vec![] }
+			}
 
-			match &self.map.get(x_usize) {
-				Some(x_val) => match x_val.get(y_usize) {
-					Some(y_val) => *y_val,
-					None => Tile::EMPTY,
-				},
-				None => Tile::EMPTY,
+			pub fn get_tile_at<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> &Tile {
+				let x_i32 = &x.into();
+				let y_i32 = &y.into();
+
+				let x_col = match &self.map.get(x_i32) {
+					Some(x_val) => x_val,
+					None => {
+						&self.map.insert(*x_i32, HashMap::new());
+						&self.map.get(x_i32).unwrap()
+					},
+				};
+
+				match x_col.get(y_i32){
+					Some(tile) => tile,
+					None => {
+						x_col.insert(*y_i32, Tile::new());
+						x_col.get(y_i32).unwrap()
+					},
+				}
+
 			}
 		}
-	}
 
-	#[derive(Copy, Clone)]
-	enum Tile {
-		EMPTY,
-		WALL,
+		//#[derive(Copy, Clone)]
+		struct Tile {
+			pub contents: Vec<WorldObject>
+		}
+
+		impl Tile {
+			fn new() -> Tile{
+				Tile {
+					contents: vec![]
+				}
+			}
+		}
+
+		enum WorldObject {
+			WALL
+		}
 	}
 }

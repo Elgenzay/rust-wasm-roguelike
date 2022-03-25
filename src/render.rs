@@ -234,7 +234,9 @@ pub mod canvas {
 		special_character: SpecialCharacter,
 	}
 
-	fn sort_box_coordinates(coord_one: Coordinate, coord_two: Coordinate) -> [Coordinate; 2]{
+	/// Given 2 coordinates that represent any 2 corners of a box, returns an array T where
+	/// T[0] is the bottom left of the box and T[1] is the top right of the box.
+	pub fn sort_box_coordinates(coord_one: Coordinate, coord_two: Coordinate) -> [Coordinate; 2]{
 		if coord_one.x > coord_two.x && coord_one.y > coord_two.y {
 			return [coord_two, coord_one];
 		} else if coord_one.x > coord_two.x && coord_one.y <= coord_two.y {

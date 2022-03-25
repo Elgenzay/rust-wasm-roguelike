@@ -7,13 +7,14 @@ use std::io::prelude::*;
 mod render;
 pub use render::canvas;
 
-mod worldgen;
-pub use worldgen::worldgen::room::*;
+mod world;
+pub use world::world::{room,area};
 
 fn main() {
 
-	let new_room = Room::new(RoomSize::LARGE);
-	println!("width: {}\nheight: {}", new_room.width, new_room.height);
+//	let new_room = room::Room::new(room::RoomSize::LARGE);
+//	println!("width: {}\nheight: {}", new_room.width, new_room.height);
+	
 
 //	let mut main_canvas = canvas::Canvas::new();
 //	main_canvas.draw_frame(
@@ -28,6 +29,21 @@ fn main() {
 //		main_canvas.print();
 //	}
 }
+
+/*
+fn draw_area(
+	canvas: canvas::Canvas,
+	screen_coord_1: canvas::Coordinate,
+	screen_coord_2: canvas::Coordinate,
+	area: area::Area,
+	area_point: crate::render::canvas::Coordinate
+) -> canvas::Canvas {
+	//let screen_coordinates = canvas::sort_box_coordinates(screen_coord_1, screen_coord_2);
+	canvas::Canvas::new()
+}
+*/
+
+
 
 fn get_input(mut canvas: canvas::Canvas) -> canvas::Canvas{
 	let stdin = io::stdin();
