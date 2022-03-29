@@ -64,34 +64,36 @@ pub mod world {
 
 		impl Area {
 			pub fn new() -> Area {
-				Area { map: vec![] }
+				Area { map: HashMap::new() }
 			}
 
-			pub fn get_tile_at<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> &Tile {
+			pub fn get_tile_at<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> Tile {
 				let x_i32 = &x.into();
 				let y_i32 = &y.into();
 
-				let x_col = match &self.map.get(x_i32) {
+				let x_col = match self.map.get(x_i32) {
 					Some(x_val) => x_val,
 					None => {
-						&self.map.insert(*x_i32, HashMap::new());
-						&self.map.get(x_i32).unwrap()
+						return Tile {
+							contents: vec![]
+						};
 					},
 				};
 
 				match x_col.get(y_i32){
-					Some(tile) => tile,
+					Some(tile) => tile.clone(),
 					None => {
-						x_col.insert(*y_i32, Tile::new());
-						x_col.get(y_i32).unwrap()
+						Tile {
+							contents: vec![]
+						}
 					},
 				}
 
 			}
 		}
 
-		//#[derive(Copy, Clone)]
-		struct Tile {
+		#[derive(Clone)]
+		pub struct Tile {
 			pub contents: Vec<WorldObject>
 		}
 
@@ -101,10 +103,32 @@ pub mod world {
 					contents: vec![]
 				}
 			}
+
+			pub fn get_char(&self) -> char{
+				for obj in &self.contents {
+					match obj.get_char() {
+						Some(c) => return c,
+						None => {},
+					}
+				}
+				' '
+			}
 		}
 
-		enum WorldObject {
-			WALL
+		#[derive(Copy, Clone)]
+		pub enum WorldObject {
+			PLAYER,
+			WALL,
+		}
+
+		impl WorldObject {
+			fn get_char(&self) -> Option<char>{
+				match &self {
+					PLAYER => Some('O'),
+					WALL => Some('█'),
+					_ => None
+				}
+			}
 		}
 	}
 }

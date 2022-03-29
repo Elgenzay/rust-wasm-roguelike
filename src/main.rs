@@ -10,40 +10,51 @@ pub use render::canvas;
 mod world;
 pub use world::world::{room,area};
 
+pub const CANVAS_WIDTH: i32 = 119;
+pub const CANVAS_HEIGHT: i32 = 28;
+
 fn main() {
 
 //	let new_room = room::Room::new(room::RoomSize::LARGE);
 //	println!("width: {}\nheight: {}", new_room.width, new_room.height);
 	
 
-//	let mut main_canvas = canvas::Canvas::new();
-//	main_canvas.draw_frame(
-//		canvas::Coordinate::new(0,0),
-//		canvas::Coordinate::new(canvas::CANVAS_WIDTH-1, canvas::CANVAS_HEIGHT-1),
-//		"",
-//	);
-//	
-//	main_canvas.print();
-//	loop {
-//		main_canvas = get_input(main_canvas);
-//		main_canvas.print();
-//	}
+	let mut main_canvas = canvas::Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
+	main_canvas.draw_frame(
+		canvas::Coordinate::new(0,0),
+		canvas::Coordinate::new(CANVAS_WIDTH-1, CANVAS_HEIGHT-1),
+		"",
+	);
+	
+	main_canvas.print();
+	loop {
+		main_canvas = get_input(main_canvas);
+		main_canvas.print();
+	}
 }
 
-/*
+
 fn draw_area(
-	canvas: canvas::Canvas,
+	canvas: &mut canvas::Canvas,
 	screen_coord_1: canvas::Coordinate,
 	screen_coord_2: canvas::Coordinate,
 	area: area::Area,
 	area_point: crate::render::canvas::Coordinate
-) -> canvas::Canvas {
-	//let screen_coordinates = canvas::sort_box_coordinates(screen_coord_1, screen_coord_2);
-	canvas::Canvas::new()
+) {
+	let screen_coordinates = canvas::sort_box_coordinates(screen_coord_1, screen_coord_2);
+	let width = screen_coordinates[1].x - screen_coordinates[0].x + 1;
+	let height = screen_coordinates[1].y - screen_coordinates[0].y + 1;
+	//c_x and c_y are the x and y of the center of the selection on the canvas
+	let c_x = (width/2) + screen_coordinates[0].x;
+	let c_y = (height/2) + screen_coordinates[0].y;
+	for b in screen_coordinates[0].x..screen_coordinates[1].x {
+		for a in screen_coordinates[0].y..screen_coordinates[1].y {
+			let x: i32 = area_point.x - (c_x - a);
+			let y: i32 = area_point.y - (c_y - b);
+			canvas.set(a,b, area.get_tile_at(x,y).get_char());
+		}
+	}
 }
-*/
-
-
 
 fn get_input(mut canvas: canvas::Canvas) -> canvas::Canvas{
 	let stdin = io::stdin();
@@ -124,8 +135,8 @@ fn parse_comma_separated_coordinate_string(string: &str) -> canvas::Coordinate{
 		match result {
 			Ok(v) => {
 				match i {
-					1 => coord.x = v as usize,
-					2 => coord.y = v as usize,
+					1 => coord.x = v,
+					2 => coord.y = v,
 					_ => break,
 				}
 			},

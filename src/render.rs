@@ -1,7 +1,6 @@
 pub mod canvas {
-
-	pub const CANVAS_WIDTH: usize = 119;
-	pub const CANVAS_HEIGHT: usize = 28;
+	
+	use std::collections::HashMap;
 
 	/// A block of text with a coordinate system
 	pub struct Canvas {
@@ -16,25 +15,66 @@ pub mod canvas {
 		/// canvas.map[0][0] = 'h';
 		/// canvas.map[1][0] = 'i';
 		/// ```
-		map: [[char; CANVAS_HEIGHT]; CANVAS_WIDTH],
+		map: HashMap<i32, HashMap<i32, char>>,
+		width: i32,
+		height: i32,
 	}
 
 	impl Canvas {
 
 		/// Return an empty canvas (all spaces)
-		pub fn new() -> Canvas {
+		pub fn new<W: Into<i32>, H: Into<i32>>(width: W, height: H) -> Canvas {
 			Canvas {
-				map: [[' '; CANVAS_HEIGHT]; CANVAS_WIDTH],
+				map: HashMap::new(),
+				width: width.into(),
+				height: height.into(),
 			}
+		}
+
+		pub fn get<X: Into<i32>, Y: Into<i32>>(&self, x: X, y:Y) -> char {
+			let x_i32 = x.into();
+			let y_i32 = y.into();
+			if self.out_of_bounds(&x_i32, &y_i32) {
+				panic!("Canvas coordinate out of bounds");
+			}
+			let x_col = match self.map.get(&x_i32) {
+				Some(val) => val,
+				None => {
+					return ' ';
+				}
+			};
+			match x_col.get(&y_i32) {
+				Some(val) => *val,
+				None => {
+					return ' ';
+				}
+			}
+		}
+
+		pub fn set<X: Into<i32>, Y: Into<i32>>(&mut self, x: X, y:Y, c: char){
+			let x_i32 = &x.into();
+			let y_i32 = &y.into();
+			let x_col = match self.map.get_mut(x_i32) {
+				Some(val) => val,
+				None => {
+					self.map.insert(*x_i32, HashMap::new());
+					self.map.get_mut(&x_i32).unwrap()
+				}
+			};
+			x_col.insert(*y_i32, c);
+		}
+
+		fn out_of_bounds(&self, x: &i32, y: &i32) -> bool{
+			x < &0 || y < &0 || x > &(&self.width-1) || y > &(&self.height-1)
 		}
 
 		/// Print the canvas to the console
 		pub fn print(&self){
-			for y in (0..CANVAS_HEIGHT).rev() {
+			for y in (0..self.height).rev() {
 				let mut row_string: String = String::from("");
-				for x in 0..CANVAS_WIDTH {
+				for x in 0..self.width {
 					let mut b = [0; 3];
-					row_string.push_str(self.map[x][y].encode_utf8(&mut b));
+					row_string.push_str(self.get(x,y).encode_utf8(&mut b));
 				}
 				println!("{}", row_string);
 			}
@@ -51,7 +91,7 @@ pub mod canvas {
 			let new_coords = sort_box_coordinates(fill_from, fill_to);
 			for x in new_coords[0].x..(new_coords[1].x + 1) {
 				for y in new_coords[0].y..(new_coords[1].y + 1) {
-					self.map[x][y] = fill;
+					self.set(x, y, fill);
 				}
 			}
 		}
@@ -103,10 +143,10 @@ pub mod canvas {
 			self.fill(Coordinate::new(draw_to.x, draw_from.y), draw_to, fill_chars[5]);
 		
 			let new_coords = sort_box_coordinates(draw_from, draw_to);
-			self.map[new_coords[0].x][new_coords[0].y] = fill_chars[3];
-			self.map[new_coords[1].x][new_coords[1].y] = fill_chars[1];
-			self.map[new_coords[0].x][new_coords[1].y] = fill_chars[0];
-			self.map[new_coords[1].x][new_coords[0].y] = fill_chars[2];
+			self.set(new_coords[0].x, new_coords[0].y, fill_chars[3]);
+			self.set(new_coords[1].x, new_coords[1].y, fill_chars[1]);
+			self.set(new_coords[0].x, new_coords[1].y, fill_chars[0]);
+			self.set(new_coords[1].x, new_coords[0].y, fill_chars[2]);
 		}
 
 		/// Write strings of word wrapped text to the canvas, bound by the specified selection
@@ -186,7 +226,7 @@ pub mod canvas {
 						}
 					}
 					if !matches!(text_box_characters[char_index].special_character, SpecialCharacter::Empty){
-						self.map[container_coords[0].x + x][container_coords[1].y - y] = text_box_characters[char_index].character;
+						self.set(container_coords[0].x + x, container_coords[1].y - y, text_box_characters[char_index].character);
 					}
 					if word_length > 0 {
 						word_length -= 1;
@@ -203,8 +243,8 @@ pub mod canvas {
 	/// A point in 2D space
 	#[derive(Copy,Clone,Debug)]
 	pub struct Coordinate {
-		pub x: usize, // 0: leftmost
-		pub y: usize, // 0: bottommost
+		pub x: i32, // 0: leftmost
+		pub y: i32, // 0: bottommost
 	}
 
 	impl Coordinate {
@@ -215,10 +255,10 @@ pub mod canvas {
 		/// 
 		/// * `x` - The X position of the new Coordinate
 		/// * `y` - the Y position of the new Coordinate
-		pub fn new(x: usize, y: usize) -> Coordinate{
+		pub fn new<X: Into<i32>,Y: Into<i32>>(x: X, y: Y) -> Coordinate{
 			Coordinate {
-				x: x,
-				y: y,
+				x: x.into(),
+				y: y.into(),
 			}
 		}
 	}
