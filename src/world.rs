@@ -55,7 +55,6 @@ pub mod world {
 	}
 
 	pub mod area {
-		
 		use std::collections::HashMap;
 
 		pub struct Area {
@@ -64,7 +63,9 @@ pub mod world {
 
 		impl Area {
 			pub fn new() -> Area {
-				Area { map: HashMap::new() }
+				Area {
+					map: HashMap::new(),
+				}
 			}
 
 			pub fn get_tile_at<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> Tile {
@@ -74,24 +75,17 @@ pub mod world {
 				let x_col = match self.map.get(x_i32) {
 					Some(x_val) => x_val,
 					None => {
-						return Tile {
-							contents: vec![]
-						};
-					},
+						return Tile { contents: vec![] };
+					}
 				};
 
-				match x_col.get(y_i32){
+				match x_col.get(y_i32) {
 					Some(tile) => tile.clone(),
-					None => {
-						Tile {
-							contents: vec![]
-						}
-					},
+					None => Tile { contents: vec![] },
 				}
-
 			}
 
-			pub fn set_tile<X: Into<i32>, Y: Into<i32>>(&mut self, x: X, y: Y, t: Tile){
+			pub fn set_tile<X: Into<i32>, Y: Into<i32>>(&mut self, x: X, y: Y, t: Tile) {
 				let x_i32 = x.into();
 				let y_i32 = y.into();
 
@@ -100,31 +94,27 @@ pub mod world {
 					None => {
 						self.map.insert(x_i32, HashMap::new());
 						self.map.get_mut(&x_i32).unwrap()
-					},
+					}
 				};
-				
 				x_col.insert(y_i32, t);
 			}
-
 		}
 
 		#[derive(Clone)]
 		pub struct Tile {
-			pub contents: Vec<WorldObject>
+			pub contents: Vec<WorldObject>,
 		}
 
 		impl Tile {
-			fn new() -> Tile{
-				Tile {
-					contents: vec![]
-				}
+			fn new() -> Tile {
+				Tile { contents: vec![] }
 			}
 
-			pub fn get_char(&self) -> char{
+			pub fn get_char(&self) -> char {
 				for obj in &self.contents {
 					match obj.get_char() {
 						Some(c) => return c,
-						None => {},
+						None => {}
 					}
 				}
 				' '
@@ -138,7 +128,7 @@ pub mod world {
 		}
 
 		impl WorldObject {
-			fn get_char(&self) -> Option<char>{
+			fn get_char(&self) -> Option<char> {
 				match &self {
 					WorldObject::PLAYER => Some('O'),
 					WorldObject::WALL => Some('█'),
