@@ -25,7 +25,38 @@ fn main() {
 		canvas::Coordinate::new(CANVAS_WIDTH-1, CANVAS_HEIGHT-1),
 		"",
 	);
+
+	main_canvas.fill(
+		canvas::Coordinate::new(1,1),
+		canvas::Coordinate::new(CANVAS_WIDTH-2,CANVAS_HEIGHT-2),
+		'.'
+	);
 	
+	let mut main_area = area::Area::new();
+	main_area.set_tile(
+		-1,
+		0,
+		area::Tile{
+			contents:vec![area::WorldObject::WALL]
+		}
+	);
+
+	main_area.set_tile(
+		1,
+		0,
+		area::Tile{
+			contents:vec![area::WorldObject::WALL]
+		}
+	);
+
+	draw_area(
+		&mut main_canvas,
+		canvas::Coordinate::new(1,1),
+		canvas::Coordinate::new(10,10),
+		main_area, 
+		canvas::Coordinate::new(0,0)
+	);
+
 	main_canvas.print();
 	loop {
 		main_canvas = get_input(main_canvas);

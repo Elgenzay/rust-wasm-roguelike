@@ -90,6 +90,22 @@ pub mod world {
 				}
 
 			}
+
+			pub fn set_tile<X: Into<i32>, Y: Into<i32>>(&mut self, x: X, y: Y, t: Tile){
+				let x_i32 = x.into();
+				let y_i32 = y.into();
+
+				let x_col = match self.map.get_mut(&x_i32) {
+					Some(x_val) => x_val,
+					None => {
+						self.map.insert(x_i32, HashMap::new());
+						self.map.get_mut(&x_i32).unwrap()
+					},
+				};
+				
+				x_col.insert(y_i32, t);
+			}
+
 		}
 
 		#[derive(Clone)]
@@ -124,9 +140,8 @@ pub mod world {
 		impl WorldObject {
 			fn get_char(&self) -> Option<char>{
 				match &self {
-					PLAYER => Some('O'),
-					WALL => Some('█'),
-					_ => None
+					WorldObject::PLAYER => Some('O'),
+					WorldObject::WALL => Some('█'),
 				}
 			}
 		}
