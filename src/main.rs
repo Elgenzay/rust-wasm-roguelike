@@ -44,7 +44,6 @@ fn main() {
 	loop {
 		// temporary test loop
 
-
 		draw_area(
 			&mut main_canvas,
 			canvas::Coordinate::new(1, 1),
@@ -63,17 +62,67 @@ fn main() {
 			break;
 		}
 		let str = &input.to_lowercase()[..];
-		match str {
-			"exit" => std::process::exit(0),
-			"w" => view_position.y = view_position.y + 1,
-			"a" => view_position.x = view_position.x - 1,
-			"s" => view_position.y = view_position.y - 1,
-			"d" => view_position.x = view_position.x + 1,
-			_ => (),
-		}
-
-
+		command_to_click(str);
+	//	match str {
+	//		"exit" => std::process::exit(0),
+	//		"w" => view_position.y = view_position.y + 1,
+	//		"a" => view_position.x = view_position.x - 1,
+	//		"s" => view_position.y = view_position.y - 1,
+	//		"d" => view_position.x = view_position.x + 1,
+	//		_ => (),
+	//	}
 	}
+}
+
+fn command_to_click(command: &str) {
+	let mut args = command.split(" ");
+	let mut x = 0;
+	let mut y = 0;
+	let mut rightclick = false;
+	for i in 1..4 {
+		match args.next() {
+			Some(str) => match i {
+				1 => match str.parse::<i32>() {
+					Ok(v) => {
+						x = v;
+					}
+					Err(_) => return,
+				},
+				2 => match str.parse::<i32>() {
+					Ok(v) => {
+						y = v;
+					}
+					Err(_) => return,
+				},
+				3 => match str.parse::<i32>() {
+					Ok(v) => {
+						if v > 0 {
+							rightclick = true;
+						}
+					}
+					Err(_) => (),
+				},
+				_ => (),
+			},
+			None => {
+				if i == 3 {
+					()
+				} else {
+					return;
+				}
+			}
+		}
+	}
+	click(x, y, rightclick);
+}
+
+fn click(x: i32, y: i32, rightclick: bool) {
+	println!(
+		"{}clicked ({},{})",
+		if rightclick { "right" } else { "" },
+		x,
+		y
+	);
 }
 
 fn draw_area(
