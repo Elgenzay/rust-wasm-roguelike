@@ -40,18 +40,39 @@ fn main() {
 		},
 	);
 
-	draw_area(
-		&mut main_canvas,
-		canvas::Coordinate::new(1, 1),
-		canvas::Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
-		main_area,
-		canvas::Coordinate::new(0, 0),
-	);
-
-	main_canvas.print();
+	let mut view_position = canvas::Coordinate::new(0, 0);
 	loop {
-		main_canvas = get_input(main_canvas);
+		// temporary test loop
+
+
+		draw_area(
+			&mut main_canvas,
+			canvas::Coordinate::new(1, 1),
+			canvas::Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
+			&main_area,
+			view_position,
+		);
+
+		//main_canvas = get_input(main_canvas);
 		main_canvas.print();
+
+		let stdin = io::stdin();
+		let mut input: String = "".to_string();
+		for line in stdin.lock().lines() {
+			input = line.unwrap().to_string();
+			break;
+		}
+		let str = &input.to_lowercase()[..];
+		match str {
+			"exit" => std::process::exit(0),
+			"w" => view_position.y = view_position.y + 1,
+			"a" => view_position.x = view_position.x - 1,
+			"s" => view_position.y = view_position.y - 1,
+			"d" => view_position.x = view_position.x + 1,
+			_ => (),
+		}
+
+
 	}
 }
 
@@ -59,7 +80,7 @@ fn draw_area(
 	canvas: &mut canvas::Canvas,
 	screen_coord_1: canvas::Coordinate,
 	screen_coord_2: canvas::Coordinate,
-	area: area::Area,
+	area: &area::Area,
 	area_point: crate::render::canvas::Coordinate,
 ) {
 	let screen_coordinates = canvas::sort_box_coordinates(screen_coord_1, screen_coord_2);
