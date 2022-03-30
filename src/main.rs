@@ -23,12 +23,6 @@ fn main() {
 		canvas::Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		"",
 	);
-
-	main_canvas.fill(
-		canvas::Coordinate::new(1, 1),
-		canvas::Coordinate::new(CANVAS_WIDTH - 2, CANVAS_HEIGHT - 2),
-		'.',
-	);
 	let mut main_area = area::Area::new();
 	main_area.set_tile(
 		-1,
@@ -49,7 +43,7 @@ fn main() {
 	draw_area(
 		&mut main_canvas,
 		canvas::Coordinate::new(1, 1),
-		canvas::Coordinate::new(10, 10),
+		canvas::Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		main_area,
 		canvas::Coordinate::new(0, 0),
 	);
@@ -74,8 +68,8 @@ fn draw_area(
 	//c_x and c_y are the x and y of the center of the selection on the canvas
 	let c_x = (width / 2) + screen_coordinates[0].x;
 	let c_y = (height / 2) + screen_coordinates[0].y;
-	for b in screen_coordinates[0].x..screen_coordinates[1].x {
-		for a in screen_coordinates[0].y..screen_coordinates[1].y {
+	for a in screen_coordinates[0].x..screen_coordinates[1].x {
+		for b in screen_coordinates[0].y..screen_coordinates[1].y {
 			let x: i32 = area_point.x - (c_x - a);
 			let y: i32 = area_point.y - (c_y - b);
 			canvas.set(a, b, area.get_tile_at(x, y).get_char());
