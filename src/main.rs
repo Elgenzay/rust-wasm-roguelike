@@ -10,6 +10,9 @@ pub use render::canvas;
 mod world;
 pub use world::world::{area, room};
 
+mod engine;
+pub use engine::engine::*;
+
 pub const CANVAS_WIDTH: i32 = 119;
 pub const CANVAS_HEIGHT: i32 = 28;
 
@@ -19,8 +22,8 @@ fn main() {
 
 	let mut main_canvas = canvas::Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
 	main_canvas.draw_frame(
-		canvas::Coordinate::new(0, 0),
-		canvas::Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
+		Coordinate::new(0, 0),
+		Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		"",
 	);
 	let mut main_area = area::Area::new();
@@ -40,20 +43,22 @@ fn main() {
 		},
 	);
 
-	let mut view_position = canvas::Coordinate::new(0, 0);
+	let mut player = Player{
+		area: main_area,
+		location: Coordinate::new(0,0),
+		canvas: main_canvas,
+	};
 	loop {
 		// temporary test loop
 
 		draw_area(
-			&mut main_canvas,
-			canvas::Coordinate::new(1, 1),
-			canvas::Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
-			&main_area,
-			view_position,
+			&mut player,
+			Coordinate::new(1, 1),
+			Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		);
 
 		//main_canvas = get_input(main_canvas);
-		main_canvas.print();
+		player.canvas.print();
 
 		let stdin = io::stdin();
 		let mut input: String = "".to_string();
@@ -62,7 +67,7 @@ fn main() {
 			break;
 		}
 		let str = &input.to_lowercase()[..];
-		command_to_click(str);
+		command_to_click(&mut player, str);
 	//	match str {
 	//		"exit" => std::process::exit(0),
 	//		"w" => view_position.y = view_position.y + 1,
@@ -74,7 +79,7 @@ fn main() {
 	}
 }
 
-fn command_to_click(command: &str) {
+fn command_to_click(player: &mut Player, command: &str) {
 	let mut args = command.split(" ");
 	let mut x = 0;
 	let mut y = 0;
@@ -113,37 +118,22 @@ fn command_to_click(command: &str) {
 			}
 		}
 	}
-	click(x, y, rightclick);
+	click(player, x, y, rightclick);
 }
 
-fn click(x: i32, y: i32, rightclick: bool) {
+fn click(mut player: &mut Player, x: i32, y: i32, rightclick: bool) {
 	println!(
 		"{}clicked ({},{})",
 		if rightclick { "right" } else { "" },
 		x,
 		y
 	);
-}
-
-fn draw_area(
-	canvas: &mut canvas::Canvas,
-	screen_coord_1: canvas::Coordinate,
-	screen_coord_2: canvas::Coordinate,
-	area: &area::Area,
-	area_point: crate::render::canvas::Coordinate,
-) {
-	let screen_coordinates = canvas::sort_box_coordinates(screen_coord_1, screen_coord_2);
-	let width = screen_coordinates[1].x - screen_coordinates[0].x + 1;
-	let height = screen_coordinates[1].y - screen_coordinates[0].y + 1;
-	//c_x and c_y are the x and y of the center of the selection on the canvas
-	let c_x = (width / 2) + screen_coordinates[0].x;
-	let c_y = (height / 2) + screen_coordinates[0].y;
-	for a in screen_coordinates[0].x..screen_coordinates[1].x {
-		for b in screen_coordinates[0].y..screen_coordinates[1].y {
-			let x: i32 = area_point.x - (c_x - a);
-			let y: i32 = area_point.y - (c_y - b);
-			canvas.set(a, b, area.get_tile_at(x, y).get_char());
-		}
+	let canvas_unit_at_click = player.canvas.get(x,y);
+	match canvas_unit_at_click.on_click {
+		Action::MOVE(coord) => {
+			player.location = coord;
+		},
+		_ => (),
 	}
 }
 
@@ -182,8 +172,8 @@ fn issue_command(mut canvas: canvas::Canvas, command: &str) -> canvas::Canvas {
 	match base_command {
 		"/fill" | "/frame" | "/text" => {
 			let mut i: i8 = -1;
-			let mut fill_from = canvas::Coordinate::new(0, 0);
-			let mut fill_to = canvas::Coordinate::new(0, 0);
+			let mut fill_from = Coordinate::new(0, 0);
+			let mut fill_to = Coordinate::new(0, 0);
 			let mut fill_char = String::from("");
 			for str in command.split(" ") {
 				i += 1;
@@ -217,8 +207,8 @@ fn issue_command(mut canvas: canvas::Canvas, command: &str) -> canvas::Canvas {
 	canvas
 }
 
-fn parse_comma_separated_coordinate_string(string: &str) -> canvas::Coordinate {
-	let mut coord = canvas::Coordinate::new(0, 0);
+fn parse_comma_separated_coordinate_string(string: &str) -> Coordinate {
+	let mut coord = Coordinate::new(0, 0);
 	let mut i = 0;
 	for s in string.split(",") {
 		i += 1;

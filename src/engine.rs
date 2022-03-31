@@ -1,12 +1,17 @@
 use super::*;
 
 pub mod engine {
+
+	pub struct Player {
+		pub area: super::area::Area,
+		pub location: Coordinate,
+		pub canvas: super::canvas::Canvas,
+	}
+
 	pub fn draw_area(
-		canvas: &mut super::canvas::Canvas,
-		screen_coord_1: super::canvas::Coordinate,
-		screen_coord_2: super::canvas::Coordinate,
-		area: &super::area::Area,
-		area_point: crate::render::canvas::Coordinate,
+		player: &mut Player,
+		screen_coord_1: Coordinate,
+		screen_coord_2: Coordinate,
 	) {
 		let screen_coordinates = super::canvas::sort_box_coordinates(
 			screen_coord_1,
@@ -19,10 +24,43 @@ pub mod engine {
 		let c_y = (height / 2) + screen_coordinates[0].y;
 		for a in screen_coordinates[0].x..screen_coordinates[1].x {
 			for b in screen_coordinates[0].y..screen_coordinates[1].y {
-				let x: i32 = area_point.x - (c_x - a);
-				let y: i32 = area_point.y - (c_y - b);
-				canvas.set(a, b, area.get_tile_at(x, y).get_char());
+				let x: i32 = player.location.x - (c_x - a);
+				let y: i32 = player.location.y - (c_y - b);
+				player.canvas.set(a, b, player.area.get_tile_at(x, y).get_char(), Action::MOVE(Coordinate{x, y}));
 			}
 		}
+	}
+
+	/// A point in 2D space
+	#[derive(Copy, Clone, Debug)]
+	pub struct Coordinate {
+		pub x: i32, // 0: leftmost
+		pub y: i32, // 0: bottommost
+	}
+
+	impl Coordinate {
+		/// Return a Coordinate with the specified position
+		///
+		/// # Arguments
+		///
+		/// * `x` - The X position of the new Coordinate
+		/// * `y` - the Y position of the new Coordinate
+		pub fn new<X: Into<i32>, Y: Into<i32>>(x: X, y: Y) -> Coordinate {
+			Coordinate {
+				x: x.into(),
+				y: y.into(),
+			}
+		}
+
+		pub fn set<X: Into<i32>, Y: Into<i32>>(&mut self, x: X, y: Y) {
+			self.x = x.into();
+			self.y = y.into();
+		}
+	}
+
+	#[derive(Copy, Clone)]
+	pub enum Action {
+		NONE,
+		MOVE(Coordinate),
 	}
 }
