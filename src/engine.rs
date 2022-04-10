@@ -58,6 +58,12 @@ pub mod engine {
 		}
 	}
 
+	impl PartialEq for Coordinate {
+		fn eq(&self, other: &Coordinate) -> bool {
+			self.x == other.x && self.y == other.y
+		}
+	}
+
 	#[derive(Copy, Clone)]
 	pub enum Action {
 		NONE,

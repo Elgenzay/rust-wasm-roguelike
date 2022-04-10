@@ -26,22 +26,49 @@ fn main() {
 		Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		"",
 	);
-	let mut main_area = area::Area::new();
-	main_area.set_tile(
-		-1,
-		0,
-		area::Tile {
-			contents: vec![area::WorldObject::WALL],
-		},
-	);
+	let mut main_area = area::Area::new(Option::None);
+//	main_area.set_tile(
+//		-1,
+//		0,
+//		area::Tile {
+//			contents: vec![area::WorldObject::WALL],
+//		},
+//	);
+//
+//	main_area.set_tile(
+//		1,
+//		0,
+//		area::Tile {
+//			contents: vec![area::WorldObject::WALL],
+//		},
+//	);
 
-	main_area.set_tile(
-		1,
-		0,
-		area::Tile {
-			contents: vec![area::WorldObject::WALL],
-		},
-	);
+	let test_room = room::Room {
+		width: 10,
+		height: 10,
+		position: Coordinate::new(-22,-12)
+	};
+	main_area.place_room(&test_room);
+
+	
+	let test_room_2 = room::Room {
+		width: 10,
+		height: 10,
+		position: Coordinate::new(0, 0)
+	};
+	main_area.place_room(&test_room_2);
+
+	main_area.create_room_hallway(&test_room, &test_room_2);
+
+
+//	main_area.set_tile(
+//		0,
+//		0,
+//		area::Tile {
+//			contents: vec![area::WorldObject::PLAYER],
+//		},
+//	);
+
 
 	let mut player = Player{
 		area: main_area,
