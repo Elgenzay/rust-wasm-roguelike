@@ -20,34 +20,12 @@ pub mod world {
 		}
 
 		impl Room {
-			//	pub fn new(size: RoomSize, position: Coordinate) -> Room {
-			//		let length_width_sum: i32 = match size {
-			//			RoomSize::SMALL => 8,
-			//			RoomSize::MEDIUM => 16,
-			//			RoomSize::LARGE => 32,
-			//			RoomSize::CUSTOM(a) => a,
-			//		};
-			//		let deviation: i32 = (length_width_sum as f32
-			//			* (ROOM_SQUARE_DEVIATION_THRESHOLD as f32 * 0.01)) as i32;
-			//		if deviation == 0 {
-			//			return Room {
-			//				width: length_width_sum / 2,
-			//				height: length_width_sum / 2,
-			//			};
-			//		}
-			//		let min = (length_width_sum / 2) - deviation;
-			//		let max = (length_width_sum / 2) + deviation;
-			//		let width = rand::thread_rng().gen_range(min..max);
-			//		let height = length_width_sum - width;
-			//		if rand::random() {
-			//			return Room { width, height };
-			//		}
-			//		Room {
-			//			width: height,
-			//			height: width,
-			//		}
-			//	}
-			//}
+			pub fn overlaps_coordinate(&self, coord: Coordinate) -> bool {
+				coord.y < self.position.y + self.height &&
+				coord.y > self.position.y &&
+				coord.x < self.position.x + self.width &&
+				coord.x > self.position.x
+			}
 		}
 	}
 
@@ -72,112 +50,268 @@ pub mod world {
 
 			pub fn place_room(&mut self, room: &Room){
 				for x in room.position.x..room.position.x+room.width {
-					self.set_tile(x, room.position.y, Tile::new(Some(WorldObject::WALL)));
-					self.set_tile(x, room.position.y + room.width, Tile::new(Some(WorldObject::WALL)));
+					self.set_tile(x, room.position.y, Tile::wall());
+					self.set_tile(x, room.position.y + room.width, Tile::wall());
 				}
 				for y in room.position.y..=room.position.y+room.height {
-					self.set_tile(room.position.x, y, Tile::new(Some(WorldObject::WALL)));
-					self.set_tile(room.position.x + room.width, y, Tile::new(Some(WorldObject::WALL)));
+					self.set_tile(room.position.x, y, Tile::wall());
+					self.set_tile(room.position.x + room.width, y, Tile::wall());
 				}
 			}
 			
-			pub fn create_room_hallway(&mut self, room_1: &Room, room_2: &Room){
-				let room_coords_sorted = crate::render::canvas::sort_box_coordinates(
-					room_1.position,
-					room_2.position
-				);
-				let rooms = if room_coords_sorted[0] == room_1.position {
+			pub fn create_room_hallway(&mut self, room_1: &Room, room_2: &Room) -> bool {
+				enum Hallway{
+					STRAIGHT(
+						bool, // true if vertical
+						i32,  // y position if horizontal, or x position if vertical
+						i32,  // starting (left x/bottom y) position
+						i32   // ending (right x/top y) position
+					),
+					BENT (
+						BoxCorner,  // orientation
+						Coordinate, // turning point
+						i32,        // horizontal distance
+						i32         // vertical distance
+					)
+				}
+				#[derive(Copy, Clone)]
+				enum BoxCorner{
+					BottomRight, // ┘
+					BottomLeft,  // └
+					TopRight,    // ┐
+					TopLeft,     // ┌
+				}
+
+				let rooms = if room_2.position.y > room_1.position.y {
 					[room_1, room_2]
 				} else {
 					[room_2, room_1]
 				};
+				let room_1_top = rooms[0].position.y + rooms[0].height;
+				let room_2_top = rooms[1].position.y + rooms[1].height;
+				let room_2_edge = rooms[1].position.x + rooms[1].width;
+				let room_1_edge = rooms[0].position.x + rooms[0].width;
 				let mut possible_hallways = vec![];
-				for right_first in [true, false] {
-					let mut one_pos_y = rooms[0].position.y;
-					let mut one_height = rooms[0].position.y + rooms[0].height;
-					let mut two_pos_x = rooms[1].position.x;
-					let mut two_width = rooms[1].position.x + rooms[1].width;
-					let mut two_pos_y = rooms[1].position.y;
-					let mut one_width = rooms[0].position.x + rooms[0].width;
-					
-					if !right_first {
-						one_pos_y = rooms[0].position.x;
-						one_height = rooms[0].position.x + rooms[0].width;
-						two_pos_x = rooms[1].position.y;
-						two_width = rooms[1].position.y + rooms[1].height;
-						two_pos_y = rooms[1].position.x;
-						one_width = rooms[0].position.y + rooms[0].height;
+				let (vertical, horizontal) = if room_1_top >= rooms[1].position.y + 2 && room_2_top >= rooms[0].position.y + 2 {
+					(false, true)
+				} else if room_1_edge >= rooms[1].position.x + 2 && room_2_edge >= rooms[0].position.x + 2 {
+					(true, false)
+				} else {
+					(false, false)
+				};
+				if vertical || horizontal {
+					let (one_t_e, two_y_x, two_t_e, one_y_x, one_x_y, two_x_y, one_e_t, two_e_t) = if horizontal {
+						(room_1_top, rooms[1].position.y, room_2_top, rooms[0].position.y, rooms[0].position.x, rooms[1].position.x, room_1_edge, room_2_edge)
+					} else {
+						(room_1_edge, rooms[1].position.x, room_2_edge, rooms[0].position.x, rooms[0].position.y, rooms[1].position.y, room_1_top, room_2_top)
+					};
+					let starting_xy = if one_y_x > two_y_x {
+						one_y_x
+					} else {
+						two_y_x
+					};
+					let ending_xy = if one_t_e > two_t_e {
+						two_t_e
+					} else {
+						one_t_e
+					};
+					for y in starting_xy+1..ending_xy {
+						possible_hallways.push(Hallway::STRAIGHT(
+								vertical,
+								y,
+								if one_x_y > two_x_y{two_e_t} else {one_e_t},
+								if one_x_y > two_x_y{one_x_y} else {two_x_y},
+							)
+						);
 					}
-					
-					for i in one_pos_y+1..one_height {
-						for j in two_pos_x+1..two_width {
-							if self.region_is_empty(
-								Coordinate::new(one_width+1, i-1),
-								Coordinate::new(j+1,i+1)
-							) && self.region_is_empty(
-								Coordinate::new(j-1,i+1),
-								Coordinate::new(j+1, two_pos_y-1)
-							) {
-								possible_hallways.push((
-									right_first,
-									one_width+1, i-1, j+1, i+1,
-									j-1, i+1, j+1, two_pos_y-1,
-								));
+				} else {
+					let possible_orientations = if rooms[0].position.x < rooms[1].position.x{
+						[
+							BoxCorner::TopLeft,
+							BoxCorner::BottomRight,
+						]
+					} else {
+						[
+							BoxCorner::BottomLeft,
+							BoxCorner::TopRight,
+						]
+					};
+
+					for orientation in possible_orientations {
+						let (
+							start_x, end_x,
+							start_y, end_y
+						) = match orientation {
+							BoxCorner::BottomLeft | BoxCorner::BottomRight => (
+								rooms[1].position.x, room_2_edge,
+								rooms[0].position.y, room_1_top,
+							),
+							BoxCorner::TopLeft | BoxCorner::TopRight => (
+								rooms[0].position.x, room_1_edge,
+								rooms[1].position.y, room_2_top
+							),
+						};
+						for y in start_y+1..end_y {
+							for x in start_x+1..end_x {
+								if rooms[1].overlaps_coordinate(Coordinate::new(x,y)) || rooms[0].overlaps_coordinate(Coordinate::new(x,y)) {
+									continue;
+								}
+								let (horizontal_distance, vertical_distance) = match orientation {
+									BoxCorner::BottomLeft => (
+										rooms[0].position.x - x,
+										rooms[1].position.y - y,
+									),
+									BoxCorner::BottomRight => (
+										x - room_1_edge,
+										rooms[1].position.y - y,
+									),
+									BoxCorner::TopRight => (
+										x - room_2_edge,
+										y - room_1_top,
+									),
+									BoxCorner::TopLeft => (
+										rooms[1].position.x - x,
+										y - room_1_top,
+									),
+								};
+								possible_hallways.push(Hallway::BENT(
+										orientation,
+										Coordinate {x,y},
+										horizontal_distance,
+										vertical_distance,
+									)
+								);
 							}
 						}
 					}
 				}
-				let h = possible_hallways.get(rand::thread_rng().gen_range(0..possible_hallways.len())).unwrap();
-				if h.0 {
-					self.fill(
-						Coordinate::new(h.1, h.2),
-						Coordinate::new(h.3, h.4),
-						Tile::new(Some(WorldObject::WALL))
-					);
-					self.fill(
-						Coordinate::new(h.5, h.6),
-						Coordinate::new(h.7, h.8),
-						Tile::new(Some(WorldObject::WALL))
-					);
-					self.fill(
-						Coordinate::new(h.1-1, h.2+1),
-						Coordinate::new(h.3-1, h.4-1),
-						Tile::new(None)
-					);
-					self.fill(
-						Coordinate::new(h.5+1, h.6),
-						Coordinate::new(h.7-1, h.8+1),
-						Tile::new(None)
-					);
-				} else {
-					self.fill(
-						Coordinate::new(h.2, h.1),
-						Coordinate::new(h.4, h.3),
-						Tile::new(Some(WorldObject::WALL))
-					);
-					self.fill(
-						Coordinate::new(h.6, h.5),
-						Coordinate::new(h.8, h.7),
-						Tile::new(Some(WorldObject::WALL))
-					);
-					self.fill(
-						Coordinate::new(h.2+1, h.1-1),
-						Coordinate::new(h.4-1, h.3-1),
-						Tile::new(None)
-					);
-					self.fill(
-						Coordinate::new(h.6, h.5+1),
-						Coordinate::new(h.8+1, h.7-1),
-						Tile::new(None)
-					);
+				let	mut valid_hallways = vec![];
+				for hallway in possible_hallways {
+					let is_valid = match hallway {
+						Hallway::STRAIGHT(is_vertical, x_y, start, end) => {
+							if is_vertical {
+								self.region_is_empty(Coordinate::new(x_y, start+1), Coordinate::new(x_y, end-1))
+							} else {
+								self.region_is_empty(Coordinate::new(start+1, x_y), Coordinate::new(end-1, x_y))
+							}
+						},
+						Hallway::BENT(orientation, point, d_hor, d_ver) => {
+							self.region_is_empty(
+								point,
+								Coordinate::new(
+									match orientation {
+										BoxCorner::BottomRight | BoxCorner::TopRight => point.x - d_hor + 1,
+										BoxCorner::BottomLeft | BoxCorner::TopLeft => point.x + d_hor - 1,
+									},
+									point.y,
+								)
+							)
+							&&
+							self.region_is_empty(
+								point,
+								Coordinate::new(
+									point.x,
+									match orientation {
+										BoxCorner::TopRight | BoxCorner::TopLeft => point.y - d_ver + 1,
+										BoxCorner::BottomRight | BoxCorner::BottomLeft => point.y + d_ver - 1,
+									},
+								)
+							)
+						}
+					};
+					if is_valid {
+						valid_hallways.push(hallway);
+					}
 				}
-			}
+				if valid_hallways.len() == 0 {
+					return false;
+				}
+				let hallway = valid_hallways.get(rand::thread_rng().gen_range(0..valid_hallways.len())).unwrap();
+				match *hallway {
+					Hallway::STRAIGHT(is_vertical, x_y, start, end) => {
+						self.fill(
+							Coordinate::new(
+								if is_vertical {x_y-1} else {start},
+								if is_vertical {start} else {x_y-1},
+							),
+							Coordinate::new(
+								if is_vertical {x_y+1} else {end},
+								if is_vertical {end} else {x_y+1},
+							),
+							Tile::wall()
+						);
+						self.fill(
+							Coordinate::new(
+								if is_vertical {x_y} else {start},
+								if is_vertical {start} else {x_y},
+							),
+							Coordinate::new(
+								if is_vertical {x_y} else {end},
+								if is_vertical {end} else {x_y},
+							),
+							Tile::new(None)
+						);
+					},
+					Hallway::BENT(orientation, point, d_hor, d_ver) => {
+						let x = match orientation {
+							BoxCorner::BottomRight | BoxCorner::TopRight => point.x - d_hor,
+							BoxCorner::BottomLeft | BoxCorner::TopLeft => point.x + d_hor,
+						};
+						let y = match orientation {
+							BoxCorner::TopRight | BoxCorner::TopLeft => point.y - d_ver,
+							BoxCorner::BottomRight | BoxCorner::BottomLeft => point.y + d_ver,
+						};
 
-			fn swap_if_true<T>(is_true: bool, tuple:(T,T)) -> (T,T){
-				if is_true {
-					return (tuple.1, tuple.0);
-				}
-				tuple
+						self.fill(
+							Coordinate::new(
+								point.x,
+								point.y-1,
+							),
+							Coordinate::new(
+								x,
+								point.y+1,
+							),
+							Tile::wall()
+						);
+						self.fill(
+							Coordinate::new(
+								point.x-1,
+								point.y,
+							),
+							Coordinate::new(
+								point.x+1,
+								y,
+							),
+							Tile::wall()
+						);
+
+						let (corner_x, corner_y) = match orientation {
+							BoxCorner::TopLeft => (-1,1),
+							BoxCorner::TopRight => (1,1),
+							BoxCorner::BottomLeft => (-1,-1),
+							BoxCorner::BottomRight => (1,-1),
+						};
+						self.set_tile(point.x + corner_x, point.y + corner_y, Tile::wall());
+						
+						self.fill(
+							point,
+							Coordinate::new(
+								x,
+								point.y,
+							),
+							Tile::new(None)
+						);
+						self.fill(
+							point,
+							Coordinate::new(
+								point.x,
+								y,
+							),
+							Tile::new(None)
+						);
+					}
+				};
+				true
 			}
 
 			pub fn get_tile_at<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> Tile {
@@ -252,6 +386,10 @@ pub mod world {
 						None => vec![],
 					}
 				}
+			}
+
+			pub fn wall() -> Tile {
+				Tile::new(Some(WorldObject::WALL))
 			}
 
 			pub fn get_char(&self) -> char {
