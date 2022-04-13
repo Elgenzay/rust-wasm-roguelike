@@ -27,8 +27,8 @@ pub mod canvas {
 		pub on_click: super::engine::Action,
 	}
 
-	impl CanvasUnit{
-		fn empty() -> CanvasUnit{
+	impl CanvasUnit {
+		fn empty() -> CanvasUnit {
 			CanvasUnit {
 				character: ' ',
 				on_click: super::engine::Action::NONE,
@@ -66,7 +66,13 @@ pub mod canvas {
 			}
 		}
 
-		pub fn set<X: Into<i32>, Y: Into<i32>>(&mut self, x: X, y: Y, c: char, action: super::engine::Action) {
+		pub fn set<X: Into<i32>, Y: Into<i32>>(
+			&mut self,
+			x: X,
+			y: Y,
+			c: char,
+			action: super::engine::Action,
+		) {
 			let x_i32 = &x.into();
 			let y_i32 = &y.into();
 			let x_col = match self.map.get_mut(x_i32) {
@@ -76,10 +82,13 @@ pub mod canvas {
 					self.map.get_mut(&x_i32).unwrap()
 				}
 			};
-			x_col.insert(*y_i32, CanvasUnit {
-				character: c,
-				on_click: action,
-			});
+			x_col.insert(
+				*y_i32,
+				CanvasUnit {
+					character: c,
+					on_click: action,
+				},
+			);
 		}
 
 		fn out_of_bounds(&self, x: &i32, y: &i32) -> bool {
@@ -99,7 +108,8 @@ pub mod canvas {
 			}
 			println!("01234567891111111111222222222233333333334444444444555555555566666666667777777777888888888899999999991111111111111111111"); //GUIDE
 			println!("          0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890000000000111111111"); //GUIDE
-			println!("                                                                                                    0123456789012345678"); //GUIDE
+			println!("                                                                                                    0123456789012345678");
+			//GUIDE
 		}
 
 		/// Fill a selection with a character
@@ -109,7 +119,12 @@ pub mod canvas {
 		/// * `fill_from` - The first Coordinate of the rectangular selection
 		/// * `fill_to` - The second Coordinate of the rectangular selection
 		/// * `fill` - The char to fill the selection with
-		pub fn fill(&mut self, fill_from: super::engine::Coordinate, fill_to: super::engine::Coordinate, fill: char) {
+		pub fn fill(
+			&mut self,
+			fill_from: super::engine::Coordinate,
+			fill_to: super::engine::Coordinate,
+			fill: char,
+		) {
 			let new_coords = sort_box_coordinates(fill_from, fill_to);
 			for x in new_coords[0].x..(new_coords[1].x + 1) {
 				for y in new_coords[0].y..(new_coords[1].y + 1) {
@@ -136,7 +151,12 @@ pub mod canvas {
 		///		String::from("╔╗╝╚═║"),
 		///	);
 		/// ```
-		pub fn draw_frame(&mut self, draw_from: super::engine::Coordinate, draw_to: super::engine::Coordinate, fills: &str) {
+		pub fn draw_frame(
+			&mut self,
+			draw_from: super::engine::Coordinate,
+			draw_to: super::engine::Coordinate,
+			fills: &str,
+		) {
 			let mut fill_chars = [' '; 6];
 			let mut i = 0;
 			for char in fills.chars() {
@@ -175,10 +195,30 @@ pub mod canvas {
 				fill_chars[5],
 			);
 			let new_coords = sort_box_coordinates(draw_from, draw_to);
-			self.set(new_coords[0].x, new_coords[0].y, fill_chars[3], super::engine::Action::NONE);
-			self.set(new_coords[1].x, new_coords[1].y, fill_chars[1], super::engine::Action::NONE);
-			self.set(new_coords[0].x, new_coords[1].y, fill_chars[0], super::engine::Action::NONE);
-			self.set(new_coords[1].x, new_coords[0].y, fill_chars[2], super::engine::Action::NONE);
+			self.set(
+				new_coords[0].x,
+				new_coords[0].y,
+				fill_chars[3],
+				super::engine::Action::NONE,
+			);
+			self.set(
+				new_coords[1].x,
+				new_coords[1].y,
+				fill_chars[1],
+				super::engine::Action::NONE,
+			);
+			self.set(
+				new_coords[0].x,
+				new_coords[1].y,
+				fill_chars[0],
+				super::engine::Action::NONE,
+			);
+			self.set(
+				new_coords[1].x,
+				new_coords[0].y,
+				fill_chars[2],
+				super::engine::Action::NONE,
+			);
 		}
 
 		/// Write strings of word wrapped text to the canvas, bound by the specified selection
@@ -197,7 +237,12 @@ pub mod canvas {
 		///		String::from("hello world!"),
 		///	);
 		/// ```
-		pub fn write_text(&mut self, write_from: super::engine::Coordinate, write_to: super::engine::Coordinate, text: &str) {
+		pub fn write_text(
+			&mut self,
+			write_from: super::engine::Coordinate,
+			write_to: super::engine::Coordinate,
+			text: &str,
+		) {
 			let text_chars = text.chars();
 			let mut text_box_characters = Vec::new();
 			for text_char in text_chars {
@@ -290,7 +335,10 @@ pub mod canvas {
 
 	/// Given 2 coordinates that represent any 2 corners of a box, returns an array T where
 	/// T[0] is the bottom left of the box and T[1] is the top right of the box.
-	pub fn sort_box_coordinates(coord_one: super::engine::Coordinate, coord_two: super::engine::Coordinate) -> [super::engine::Coordinate; 2] {
+	pub fn sort_box_coordinates(
+		coord_one: super::engine::Coordinate,
+		coord_two: super::engine::Coordinate,
+	) -> [super::engine::Coordinate; 2] {
 		if coord_one.x > coord_two.x && coord_one.y > coord_two.y {
 			return [coord_two, coord_one];
 		} else if coord_one.x > coord_two.x && coord_one.y <= coord_two.y {
