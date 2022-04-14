@@ -16,14 +16,52 @@ pub mod world {
 			pub width: i32,
 			pub height: i32,
 			pub position: Coordinate,
+			edge_x: Option<i32>,
+			top_y: Option<i32>,
 		}
 
 		impl Room {
-			pub fn overlaps_coordinate(&self, coord: Coordinate) -> bool {
-				coord.y < self.position.y + self.height
-					&& coord.y > self.position.y
-					&& coord.x < self.position.x + self.width
-					&& coord.x > self.position.x
+			pub fn new<X: Into<i32>, Y: Into<i32>>(
+				width: X,
+				height: Y,
+				position: Coordinate,
+			) -> Room {
+				Room {
+					width: width.into(),
+					height: height.into(),
+					position,
+					edge_x: None,
+					top_y: None,
+				}
+			}
+
+			pub fn get_edge_x(&mut self) -> i32 {
+				match self.edge_x {
+					Some(x) => x,
+					None => {
+						let edge_x = self.position.x + self.width - 1;
+						self.edge_x = Some(edge_x);
+						edge_x
+					}
+				}
+			}
+
+			pub fn get_top_y(&mut self) -> i32 {
+				match self.top_y {
+					Some(y) => y,
+					None => {
+						let top_y = self.position.y + self.height - 1;
+						self.top_y = Some(top_y);
+						top_y
+					}
+				}
+			}
+
+			pub fn overlaps_coordinate(&mut self, coord: Coordinate) -> bool {
+				coord.y <= self.get_top_y()
+					&& coord.y >= self.position.y
+					&& coord.x <= self.get_edge_x()
+					&& coord.x >= self.position.x
 			}
 		}
 	}
@@ -47,17 +85,20 @@ pub mod world {
 				}
 			}
 
-			pub fn place_room(&mut self, room: &Room) {
-				for x in room.position.x..room.position.x + room.width {
-					self.set_tile(x, room.position.y, Tile::wall());
-					self.set_tile(x, room.position.y + room.width, Tile::wall());
-				}
-				for y in room.position.y..=room.position.y + room.height {
-					self.set_tile(room.position.x, y, Tile::wall());
-					self.set_tile(room.position.x + room.width, y, Tile::wall());
-				}
+			pub fn place_room(&mut self, room: &mut Room) {
+				self.fill(
+					room.position,
+					Coordinate::new(room.get_edge_x(), room.get_top_y()),
+					Tile::wall(),
+				);
+				self.fill(
+					Coordinate::new(room.position.x + 1, room.position.y + 1),
+					Coordinate::new(room.get_edge_x() - 1, room.get_top_y() - 1),
+					Tile::new(None),
+				);
 			}
-			pub fn create_room_hallway(&mut self, room_1: &Room, room_2: &Room) -> bool {
+
+			pub fn create_room_hallway(&mut self, room_1: &mut Room, room_2: &mut Room) -> bool {
 				enum Hallway {
 					STRAIGHT(
 						bool, // true if vertical
@@ -85,17 +126,13 @@ pub mod world {
 				} else {
 					[room_2, room_1]
 				};
-				let room_1_top = rooms[0].position.y + rooms[0].height;
-				let room_2_top = rooms[1].position.y + rooms[1].height;
-				let room_2_edge = rooms[1].position.x + rooms[1].width;
-				let room_1_edge = rooms[0].position.x + rooms[0].width;
 				let mut possible_hallways = vec![];
-				let (vertical, horizontal) = if room_1_top >= rooms[1].position.y + 2
-					&& room_2_top >= rooms[0].position.y + 2
+				let (vertical, horizontal) = if rooms[0].get_top_y() >= rooms[1].position.y + 2
+					&& rooms[1].get_top_y() >= rooms[0].position.y + 2
 				{
 					(false, true)
-				} else if room_1_edge >= rooms[1].position.x + 2
-					&& room_2_edge >= rooms[0].position.x + 2
+				} else if rooms[0].get_edge_x() >= rooms[1].position.x + 2
+					&& rooms[1].get_edge_x() >= rooms[0].position.x + 2
 				{
 					(true, false)
 				} else {
@@ -105,25 +142,25 @@ pub mod world {
 					let (one_t_e, two_y_x, two_t_e, one_y_x, one_x_y, two_x_y, one_e_t, two_e_t) =
 						if horizontal {
 							(
-								room_1_top,
+								rooms[0].get_top_y(),
 								rooms[1].position.y,
-								room_2_top,
+								rooms[1].get_top_y(),
 								rooms[0].position.y,
 								rooms[0].position.x,
 								rooms[1].position.x,
-								room_1_edge,
-								room_2_edge,
+								rooms[0].get_edge_x(),
+								rooms[1].get_edge_x(),
 							)
 						} else {
 							(
-								room_1_edge,
+								rooms[0].get_edge_x(),
 								rooms[1].position.x,
-								room_2_edge,
+								rooms[1].get_edge_x(),
 								rooms[0].position.x,
 								rooms[0].position.y,
 								rooms[1].position.y,
-								room_1_top,
-								room_2_top,
+								rooms[0].get_top_y(),
+								rooms[1].get_top_y(),
 							)
 						};
 					let starting_xy = if one_y_x > two_y_x { one_y_x } else { two_y_x };
@@ -147,15 +184,15 @@ pub mod world {
 						let (start_x, end_x, start_y, end_y) = match orientation {
 							BoxCorner::BottomLeft | BoxCorner::BottomRight => (
 								rooms[1].position.x,
-								room_2_edge,
+								rooms[1].get_edge_x(),
 								rooms[0].position.y,
-								room_1_top,
+								rooms[0].get_top_y(),
 							),
 							BoxCorner::TopLeft | BoxCorner::TopRight => (
 								rooms[0].position.x,
-								room_1_edge,
+								rooms[0].get_edge_x(),
 								rooms[1].position.y,
-								room_2_top,
+								rooms[1].get_top_y(),
 							),
 						};
 						for y in start_y + 1..end_y {
@@ -170,14 +207,18 @@ pub mod world {
 										(rooms[0].position.x - x, rooms[1].position.y - y)
 									}
 									BoxCorner::BottomRight => {
-										(x - room_1_edge, rooms[1].position.y - y)
+										(x - rooms[0].get_edge_x(), rooms[1].position.y - y)
 									}
-									BoxCorner::TopRight => (x - room_2_edge, y - room_1_top),
-									BoxCorner::TopLeft => (rooms[1].position.x - x, y - room_1_top),
+									BoxCorner::TopRight => {
+										(x - rooms[1].get_edge_x(), y - rooms[0].get_top_y())
+									}
+									BoxCorner::TopLeft => {
+										(rooms[1].position.x - x, y - rooms[0].get_top_y())
+									}
 								};
 								possible_hallways.push(Hallway::BENT(
 									orientation,
-									Coordinate { x, y },
+									Coordinate::new(x, y),
 									horizontal_distance,
 									vertical_distance,
 								));

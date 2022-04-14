@@ -27,52 +27,47 @@ fn main() {
 		"",
 	);
 	let mut main_area = area::Area::new(Option::None);
-//	main_area.set_tile(
-//		-1,
-//		0,
-//		area::Tile {
-//			contents: vec![area::WorldObject::WALL],
-//		},
-//	);
-//
-//	main_area.set_tile(
-//		1,
-//		0,
-//		area::Tile {
-//			contents: vec![area::WorldObject::WALL],
-//		},
-//	);
+	//	main_area.set_tile(
+	//		-1,
+	//		0,
+	//		area::Tile {
+	//			contents: vec![area::WorldObject::WALL],
+	//		},
+	//	);
+	//
+	//	main_area.set_tile(
+	//		1,
+	//		0,
+	//		area::Tile {
+	//			contents: vec![area::WorldObject::WALL],
+	//		},
+	//	);
 
-	let test_room = room::Room {
-		width: 10,
-		height: 10,
-		position: Coordinate::new(-22,-12)
-	};
-	main_area.place_room(&test_room);
+	let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, -12));
+	//let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, 0));
+	//let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, 12));
+	//let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, -12));
+	//let mut test_room = room::Room::new(10, 10, Coordinate::new(0, -12));
+	//let mut test_room = room::Room::new(10, 10, Coordinate::new(22, -12));
+	//let mut test_room = room::Room::new(10, 10, Coordinate::new(0, 12));
+	main_area.place_room(&mut test_room);
 
-	
-	let test_room_2 = room::Room {
-		width: 10,
-		height: 10,
-		position: Coordinate::new(0, 0)
-	};
-	main_area.place_room(&test_room_2);
+	let mut test_room_2 = room::Room::new(10, 10, Coordinate::new(0, 0));
+	main_area.place_room(&mut test_room_2);
 
-	main_area.create_room_hallway(&test_room, &test_room_2);
+	main_area.create_room_hallway(&mut test_room, &mut test_room_2);
 
+	//	main_area.set_tile(
+	//		0,
+	//		0,
+	//		area::Tile {
+	//			contents: vec![area::WorldObject::PLAYER],
+	//		},
+	//	);
 
-//	main_area.set_tile(
-//		0,
-//		0,
-//		area::Tile {
-//			contents: vec![area::WorldObject::PLAYER],
-//		},
-//	);
-
-
-	let mut player = Player{
+	let mut player = Player {
 		area: main_area,
-		location: Coordinate::new(0,0),
+		location: Coordinate::new(0, 0),
 		canvas: main_canvas,
 	};
 	loop {
@@ -95,14 +90,14 @@ fn main() {
 		}
 		let str = &input.to_lowercase()[..];
 		command_to_click(&mut player, str);
-	//	match str {
-	//		"exit" => std::process::exit(0),
-	//		"w" => view_position.y = view_position.y + 1,
-	//		"a" => view_position.x = view_position.x - 1,
-	//		"s" => view_position.y = view_position.y - 1,
-	//		"d" => view_position.x = view_position.x + 1,
-	//		_ => (),
-	//	}
+		//	match str {
+		//		"exit" => std::process::exit(0),
+		//		"w" => view_position.y = view_position.y + 1,
+		//		"a" => view_position.x = view_position.x - 1,
+		//		"s" => view_position.y = view_position.y - 1,
+		//		"d" => view_position.x = view_position.x + 1,
+		//		_ => (),
+		//	}
 	}
 }
 
@@ -155,11 +150,11 @@ fn click(mut player: &mut Player, x: i32, y: i32, rightclick: bool) {
 		x,
 		y
 	);
-	let canvas_unit_at_click = player.canvas.get(x,y);
+	let canvas_unit_at_click = player.canvas.get(x, y);
 	match canvas_unit_at_click.on_click {
 		Action::MOVE(coord) => {
 			player.location = coord;
-		},
+		}
 		_ => (),
 	}
 }

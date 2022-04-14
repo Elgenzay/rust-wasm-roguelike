@@ -24,7 +24,7 @@ pub mod engine {
 					a,
 					b,
 					player.area.get_tile_at(x, y).get_char(),
-					Action::MOVE(Coordinate { x, y }),
+					Action::MOVE(Coordinate::new(x, y)),
 				);
 			}
 		}
