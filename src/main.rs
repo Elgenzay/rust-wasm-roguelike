@@ -8,7 +8,7 @@ mod render;
 pub use render::canvas;
 
 mod world;
-pub use world::world::{area, room};
+pub use world::world::{area, region};
 
 mod engine;
 pub use engine::engine::*;
@@ -17,9 +17,6 @@ pub const CANVAS_WIDTH: i32 = 119;
 pub const CANVAS_HEIGHT: i32 = 28;
 
 fn main() {
-	//	let new_room = room::Room::new(room::RoomSize::LARGE);
-	//	println!("width: {}\nheight: {}", new_room.width, new_room.height);
-
 	let mut main_canvas = canvas::Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
 	main_canvas.draw_frame(
 		Coordinate::new(0, 0),
@@ -27,43 +24,20 @@ fn main() {
 		"",
 	);
 	let mut main_area = area::Area::new(Option::None);
-	//	main_area.set_tile(
-	//		-1,
-	//		0,
-	//		area::Tile {
-	//			contents: vec![area::WorldObject::WALL],
-	//		},
-	//	);
-	//
-	//	main_area.set_tile(
-	//		1,
-	//		0,
-	//		area::Tile {
-	//			contents: vec![area::WorldObject::WALL],
-	//		},
-	//	);
 
-	let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, -12));
-	//let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, 0));
-	//let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, 12));
-	//let mut test_room = room::Room::new(10, 10, Coordinate::new(-22, -12));
-	//let mut test_room = room::Room::new(10, 10, Coordinate::new(0, -12));
-	//let mut test_room = room::Room::new(10, 10, Coordinate::new(22, -12));
-	//let mut test_room = room::Room::new(10, 10, Coordinate::new(0, 12));
-	main_area.place_room(&mut test_room);
+	let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, -12));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, 0));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, 12));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, -12));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(0, -12));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(22, -12));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(0, 12));
+	main_area.place_region(&mut test_region);
 
-	let mut test_room_2 = room::Room::new(10, 10, Coordinate::new(0, 0));
-	main_area.place_room(&mut test_room_2);
+	let mut test_region_2 = region::Region::new(10, 10, Coordinate::new(0, 0));
+	main_area.place_region(&mut test_region_2);
 
-	main_area.create_room_hallway(&mut test_room, &mut test_room_2);
-
-	//	main_area.set_tile(
-	//		0,
-	//		0,
-	//		area::Tile {
-	//			contents: vec![area::WorldObject::PLAYER],
-	//		},
-	//	);
+	main_area.create_hallway(&mut test_region, &mut test_region_2);
 
 	let mut player = Player {
 		area: main_area,
@@ -78,8 +52,6 @@ fn main() {
 			Coordinate::new(1, 1),
 			Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		);
-
-		//main_canvas = get_input(main_canvas);
 		player.canvas.print();
 
 		let stdin = io::stdin();
@@ -89,15 +61,15 @@ fn main() {
 			break;
 		}
 		let str = &input.to_lowercase()[..];
-		command_to_click(&mut player, str);
-		//	match str {
-		//		"exit" => std::process::exit(0),
-		//		"w" => view_position.y = view_position.y + 1,
-		//		"a" => view_position.x = view_position.x - 1,
-		//		"s" => view_position.y = view_position.y - 1,
-		//		"d" => view_position.x = view_position.x + 1,
-		//		_ => (),
-		//	}
+		//command_to_click(&mut player, str);
+		match str {
+			"exit" => std::process::exit(0),
+			"w" => player.location.y = player.location.y + 6,
+			"a" => player.location.x = player.location.x - 16,
+			"s" => player.location.y = player.location.y - 6,
+			"d" => player.location.x = player.location.x + 16,
+			_ => (),
+		}
 	}
 }
 
