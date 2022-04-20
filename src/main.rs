@@ -13,8 +13,10 @@ pub use world::world::{area, region};
 mod engine;
 pub use engine::engine::*;
 
-pub const CANVAS_WIDTH: i32 = 119;
-pub const CANVAS_HEIGHT: i32 = 28;
+///pub const CANVAS_WIDTH: i32 = 119;
+//pub const CANVAS_HEIGHT: i32 = 28;
+pub const CANVAS_WIDTH: i32 = 250;
+pub const CANVAS_HEIGHT: i32 = 70;
 
 fn main() {
 	let mut main_canvas = canvas::Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -23,25 +25,27 @@ fn main() {
 		Coordinate::new(CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1),
 		"",
 	);
-	let mut main_area = area::Area::new(Option::None);
+	//let mut main_area = area::Area::new(Option::None);
+	let main_area = area::Area::new_bsp_dungeon(area::DungeonConfig::default());
 
-	let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, -12));
+	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, -12));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, 0));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, 12));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, -12));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(0, -12));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(22, -12));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(0, 12));
-	main_area.place_region(&mut test_region);
 
-	let mut test_region_2 = region::Region::new(10, 10, Coordinate::new(0, 0));
-	main_area.place_region(&mut test_region_2);
-
-	main_area.create_hallway(&mut test_region, &mut test_region_2);
+//	main_area.place_region(&mut test_region);
+//
+//	let mut test_region_2 = region::Region::new(10, 10, Coordinate::new(0, 0));
+//	main_area.place_region(&mut test_region_2);
+//
+//	main_area.create_hallway(&mut test_region, &mut test_region_2);
 
 	let mut player = Player {
 		area: main_area,
-		location: Coordinate::new(0, 0),
+		location: Coordinate::new(50, 25),
 		canvas: main_canvas,
 	};
 	loop {
