@@ -386,7 +386,7 @@ pub mod world {
 			}
 
 			pub fn region_is_empty(&self, coord_1: Coordinate, coord_2: Coordinate) -> bool {
-				let coords = crate::render::canvas::sort_box_coordinates(coord_1, coord_2);
+				let coords = crate::render::canvas::sort_coordinates(coord_1, coord_2);
 				for x in coords[0].x..=coords[1].x {
 					for y in coords[0].y..=coords[1].y {
 						if self.get_tile_at(x, y).contents.len() != 0 {
@@ -398,7 +398,7 @@ pub mod world {
 			}
 
 			pub fn fill(&mut self, coord_1: Coordinate, coord_2: Coordinate, tile: Tile) {
-				let coords = crate::render::canvas::sort_box_coordinates(coord_1, coord_2);
+				let coords = crate::render::canvas::sort_coordinates(coord_1, coord_2);
 				for x in coords[0].x..=coords[1].x {
 					for y in coords[0].y..=coords[1].y {
 						self.set_tile(x, y, tile.clone());

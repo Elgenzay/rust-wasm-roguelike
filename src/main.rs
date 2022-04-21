@@ -48,6 +48,7 @@ fn main() {
 
 	let mut player = Player {
 		area: main_area,
+		discovered_area: area::Area::new(None),
 		location: Coordinate::new(50, 25),
 		canvas: main_canvas,
 	};
@@ -71,10 +72,14 @@ fn main() {
 		//command_to_click(&mut player, str);
 		match str {
 			"exit" => std::process::exit(0),
-			"w" => player.location.y = player.location.y + 6,
-			"a" => player.location.x = player.location.x - 16,
-			"s" => player.location.y = player.location.y - 6,
-			"d" => player.location.x = player.location.x + 16,
+			"w" => player.location.y = player.location.y + 1,
+			"ww" => player.location.y = player.location.y + 4,
+			"a" => player.location.x = player.location.x - 1,
+			"aa" => player.location.x = player.location.x - 4,
+			"s" => player.location.y = player.location.y - 1,
+			"ss" => player.location.y = player.location.y - 4,
+			"d" => player.location.x = player.location.x + 1,
+			"dd" => player.location.x = player.location.x + 4,
 			_ => (),
 		}
 	}

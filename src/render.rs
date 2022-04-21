@@ -125,7 +125,7 @@ pub mod canvas {
 			fill_to: super::engine::Coordinate,
 			fill: char,
 		) {
-			let new_coords = sort_box_coordinates(fill_from, fill_to);
+			let new_coords = sort_coordinates(fill_from, fill_to);
 			for x in new_coords[0].x..(new_coords[1].x + 1) {
 				for y in new_coords[0].y..(new_coords[1].y + 1) {
 					self.set(x, y, fill, super::engine::Action::NONE);
@@ -194,7 +194,7 @@ pub mod canvas {
 				draw_to,
 				fill_chars[5],
 			);
-			let new_coords = sort_box_coordinates(draw_from, draw_to);
+			let new_coords = sort_coordinates(draw_from, draw_to);
 			self.set(
 				new_coords[0].x,
 				new_coords[0].y,
@@ -259,7 +259,7 @@ pub mod canvas {
 			}
 			let mut char_index = 0;
 			let mut word_length = 0;
-			let container_coords = sort_box_coordinates(write_from, write_to);
+			let container_coords = sort_coordinates(write_from, write_to);
 			let width = container_coords[1].x - container_coords[0].x + 1;
 			let height = container_coords[1].y - container_coords[0].y + 1;
 			for y in 0..height {
@@ -335,7 +335,7 @@ pub mod canvas {
 
 	/// Given 2 coordinates that represent any 2 corners of a box, returns an array T where
 	/// T[0] is the bottom left of the box and T[1] is the top right of the box.
-	pub fn sort_box_coordinates(
+	pub fn sort_coordinates(
 		coord_one: super::engine::Coordinate,
 		coord_two: super::engine::Coordinate,
 	) -> [super::engine::Coordinate; 2] {
