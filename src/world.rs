@@ -2,14 +2,14 @@ pub mod world {
 
 	pub mod region {
 		use crate::engine::engine::Coordinate;
-		use std::cell::RefCell;
+		use std::cell::Cell;
 
 		pub struct Region {
 			pub width: i32,
 			pub height: i32,
 			pub position: Coordinate,
-			edge_x: RefCell<Option<i32>>,
-			top_y: RefCell<Option<i32>>,
+			edge_x: Cell<Option<i32>>,
+			top_y: Cell<Option<i32>>,
 		}
 
 		impl Region {
@@ -22,30 +22,28 @@ pub mod world {
 					width: width.into(),
 					height: height.into(),
 					position,
-					edge_x: RefCell::new(None),
-					top_y: RefCell::new(None),
+					edge_x: Cell::new(None),
+					top_y: Cell::new(None),
 				}
 			}
 
 			pub fn get_edge_x(&self) -> i32 {
-				let mut edge_x_refmut = self.edge_x.borrow_mut();
-				match edge_x_refmut.as_ref() {
-					Some(x) => *x,
+				match self.edge_x.get() {
+					Some(x) => x,
 					None => {
 						let edge_x = self.position.x + self.width - 1;
-						*edge_x_refmut = Some(edge_x);
+						self.edge_x.set(Some(edge_x));
 						edge_x
 					}
 				}
 			}
 
 			pub fn get_top_y(&self) -> i32 {
-				let mut top_y_refmut = self.top_y.borrow_mut();
-				match top_y_refmut.as_ref() {
-					Some(y) => *y,
+				match self.top_y.get() {
+					Some(y) => y,
 					None => {
 						let top_y = self.position.y + self.height - 1;
-						*top_y_refmut = Some(top_y);
+						self.top_y.set(Some(top_y));
 						top_y
 					}
 				}
