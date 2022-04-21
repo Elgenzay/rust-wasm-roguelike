@@ -26,7 +26,6 @@ pub mod engine {
 				} else if is_visible(player, Coordinate::new(x,y)) {
 					let tile = player.area.get_tile_at(x, y);
 					player.discovered_area.set_tile(x, y, tile.clone());
-					//tile.get_char()
 					let char = tile.get_char();
 					if char == ' ' {
 						'.'
@@ -54,35 +53,6 @@ pub mod engine {
 			}
 		}
 		return true;
-
-
-//		let coords = sort_coordinates(location, player.location);
-//		let m_new = 2 * (coords[1].y - coords[0].y);
-//		let mut slope_error_new = m_new - (coords[1].x - coords[0].x);
-//
-//		let mut x = coords[0].x;
-//		let mut y = coords[0].y;
-//
-//		while x <= coords[1].x {
-//			//println!("{},{}", x, y);
-//			if player.area.get_tile_at(x,y).contents.len() != 0 && Coordinate::new(x,y) != location {
-//				//player.canvas.set(
-//				//	x,
-//				//	y,
-//				//	'.',
-//				//	Action::MOVE(Coordinate::new(x, y)),
-//				//);
-//				//player.area.set_tile(x, y, Tile::wall());
-//				return false;
-//			}
-//			slope_error_new += m_new;
-//			if slope_error_new >= 0 {
-//				y += 1;
-//				slope_error_new -= 2 * (coords[1].x - coords[0].x);
-//			}
-//			x += 1;
-//		}
-//		true
 	}
 
 	/// A point in 2D space
