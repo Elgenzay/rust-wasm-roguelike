@@ -13,6 +13,9 @@ pub use world::world::{area, region};
 mod engine;
 pub use engine::engine::*;
 
+mod dungeon;
+pub use dungeon::dungeon::*;
+
 ///pub const CANVAS_WIDTH: i32 = 119;
 //pub const CANVAS_HEIGHT: i32 = 28;
 pub const CANVAS_WIDTH: i32 = 250;
@@ -26,7 +29,7 @@ fn main() {
 		"",
 	);
 	//let mut main_area = area::Area::new(Option::None);
-	let main_area = area::Area::new_bsp_dungeon(area::DungeonConfig::default());
+	let main_area = dungeon::dungeon::new_bsp_dungeon(dungeon::dungeon::DungeonConfig::default());
 
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, -12));
 	//let mut test_region = region::Region::new(10, 10, Coordinate::new(-22, 0));
