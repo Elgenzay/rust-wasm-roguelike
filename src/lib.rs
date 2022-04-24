@@ -25,6 +25,8 @@ use mut_static::MutStatic;
 use json::object;
 use json::stringify;
 
+use bresenham::Bresenham;
+
 lazy_static! {
 	pub static ref PLAYER: MutStatic<Player> = {
 		let dungeon = Dungeon::new(DungeonConfig::default());
@@ -32,7 +34,7 @@ lazy_static! {
 			area: dungeon.area,
 			discovered_area: Area::new(None),
 			location: dungeon.spawn_point,
-			canvas: Canvas::new(40, 80),
+			canvas: Canvas::new(50, 110),
 		})
 	};
 }
@@ -70,18 +72,36 @@ fn canvas_vector_to_string(vec: Vec<Canvas>) -> String {
 pub fn click(x: i32, y: i32) -> String {
 	let mut player = PLAYER.write().unwrap();
 	let canvas_unit_at_click = player.canvas.get(x, y);
-	match canvas_unit_at_click.on_click {
-		Action::Move(coord) => {
-			player.location = coord;
-		}
-		_ => (),
-	};
 	let edge = player.canvas.width - 1;
 	let top = player.canvas.height - 1;
-	draw_area(
-		&mut player,
-		Coordinate::new(1, 1),
-		Coordinate::new(edge, top),
-	);
-	canvas_vector_to_string(vec![player.canvas.clone()])
+	let mut canvases = vec![];
+	match canvas_unit_at_click.on_click {
+		Action::Move(coord) => {
+			for (x, y) in Bresenham::new(player.location.as_tuple(), coord.as_tuple()) {
+				player.location = Coordinate::new(x as i32, y as i32);
+				draw_area(
+					&mut player,
+					Coordinate::new(1, 1),
+					Coordinate::new(edge, top),
+				);
+				canvases.push(player.canvas.clone());
+			}
+			player.location = coord;
+			draw_area(
+				&mut player,
+				Coordinate::new(1, 1),
+				Coordinate::new(edge, top),
+			);
+			canvases.push(player.canvas.clone()); //TODO use closure
+		}
+		_ => {
+			draw_area(
+				&mut player,
+				Coordinate::new(1, 1),
+				Coordinate::new(edge, top),
+			);
+			canvases.push(player.canvas.clone());
+		}
+	};
+	canvas_vector_to_string(canvases)
 }
