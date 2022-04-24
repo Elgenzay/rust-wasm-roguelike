@@ -5,15 +5,30 @@ pub mod dungeon {
 	use crate::world::world::region::Region;
 	use rand::Rng;
 
-	pub fn new_bsp_dungeon(config: DungeonConfig) -> Area {
-		let mut dungeon = SubDungeon::new(Region::new(
-			config.dungeon_width,
-			config.dungeon_height,
-			Coordinate::new(0, 0),
-		));
-		let mut area = Area::new(None);
-		dungeon.new_bsp_dungeon_recursive(&mut area, &config, 0, SplitDirection::Random);
-		area
+	pub struct Dungeon {
+		pub area: Area,
+		pub spawn_point: Coordinate,
+	}
+
+	impl Dungeon {
+		pub fn new(config: DungeonConfig) -> Dungeon {
+			let mut dungeon = SubDungeon::new(Region::new(
+				config.dungeon_width,
+				config.dungeon_height,
+				Coordinate::new(0, 0),
+			));
+			let mut area = Area::new(None);
+			dungeon.new_bsp_dungeon_recursive(&mut area, &config, 0, SplitDirection::Random);
+			let rooms = dungeon.get_rooms();
+			let spawn_room = rooms[rand::thread_rng().gen_range(0..rooms.len())];
+			Dungeon {
+				area,
+				spawn_point: Coordinate::new(
+					spawn_room.position.x + (spawn_room.width/2),
+					spawn_room.position.y + (spawn_room.height/2),
+				),
+			}
+		}
 	}
 
 	struct SubDungeon {

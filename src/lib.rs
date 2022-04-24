@@ -17,7 +17,8 @@ use render::canvas::Canvas;
 use render::canvas::Color;
 
 mod dungeon;
-use dungeon::dungeon::*;
+use dungeon::dungeon::Dungeon;
+use dungeon::dungeon::DungeonConfig;
 
 use mut_static::MutStatic;
 
@@ -26,10 +27,11 @@ use json::stringify;
 
 lazy_static! {
 	pub static ref PLAYER: MutStatic<Player> = {
-		MutStatic::from(Player {
-			area: new_bsp_dungeon(dungeon::dungeon::DungeonConfig::default()),
+		let dungeon = Dungeon::new(DungeonConfig::default());
+		MutStatic::from(Player { 
+			area: dungeon.area,
 			discovered_area: Area::new(None),
-			location: Coordinate::new(50, 25),
+			location: dungeon.spawn_point,
 			canvas: Canvas::new(40, 80),
 		})
 	};
