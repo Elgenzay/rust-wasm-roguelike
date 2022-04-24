@@ -30,6 +30,14 @@
 			width: 20px;
 			height: 20px;
 		}
+
+		.navigable {
+			cursor: pointer;
+		}
+
+		.navigable:hover {
+			background-color: gray;
+		}
 	</style>
 	<script type="module">
 		import init, { click } from './pkg/learn.js';
@@ -52,6 +60,9 @@
 					let elem = document.createElement("div");
 					if ("bg" in canvas[x][y]) {
 						elem.style.backgroundColor = canvas[x][y]["bg"];
+					}
+					if ("m" in canvas[x][y]) {
+						elem.classList.add("navigable");
 					}
 					let char_elem = document.createElement("pre");
 					char_elem.innerText = canvas[x][y]["c"];

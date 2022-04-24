@@ -28,7 +28,7 @@ use json::stringify;
 lazy_static! {
 	pub static ref PLAYER: MutStatic<Player> = {
 		let dungeon = Dungeon::new(DungeonConfig::default());
-		MutStatic::from(Player { 
+		MutStatic::from(Player {
 			area: dungeon.area,
 			discovered_area: Area::new(None),
 			location: dungeon.spawn_point,
@@ -50,6 +50,9 @@ fn canvas_vector_to_string(vec: Vec<Canvas>) -> String {
 				);
 				if !matches!(canvas_unit.bg_color, Color::Black) {
 					obj.insert("bg", canvas_unit.bg_color.as_string()).unwrap();
+				}
+				if matches!(canvas_unit.on_click, Action::Move(_)) {
+					obj.insert("m", true).unwrap();
 				}
 				x_vec.push(obj);
 			}

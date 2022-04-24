@@ -431,6 +431,15 @@ pub mod world {
 				Tile::new(Some(WorldObject::WALL))
 			}
 
+			pub fn contains_wall(&self) -> bool {
+				for obj in &self.contents {
+					if matches!(obj, WorldObject::WALL) {
+						return true;
+					}
+				}
+				false
+			}
+
 			pub fn get_char(&self) -> char {
 				for obj in &self.contents {
 					match obj.get_char() {

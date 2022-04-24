@@ -22,9 +22,10 @@ pub mod engine {
 				let x: i32 = player.location.x - (c_x - a);
 				let y: i32 = player.location.y - (c_y - b);
 				let tile = player.area.get_tile_at(x, y);
+				let visible = is_visible(player, Coordinate::new(x, y));
 				let (char, bg_color) = if Coordinate::new(x, y) == player.location {
 					('O', Color::Black)
-				} else if is_visible(player, Coordinate::new(x, y)) {
+				} else if visible {
 					player.discovered_area.set_tile(x, y, tile.clone());
 					if tile.contents.len() == 0 {
 						('.', Color::Black)
@@ -37,9 +38,17 @@ pub mod engine {
 						player.discovered_area.get_tile_at(x, y).get_bgcolor(),
 					)
 				};
-				player
-					.canvas
-					.set(a, b, char, bg_color, Action::Move(Coordinate::new(x, y)));
+				player.canvas.set(
+					a,
+					b,
+					char,
+					bg_color,
+					if visible && !tile.contains_wall() {
+						Action::Move(Coordinate::new(x, y))
+					} else {
+						Action::None
+					},
+				);
 			}
 		}
 	}
