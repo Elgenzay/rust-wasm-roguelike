@@ -61,20 +61,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "learn"
-version = "0.1.0"
-dependencies = [
- "bresenham",
- "getrandom",
- "json",
- "lazy_static",
- "mut_static",
- "rand",
- "text_io",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.121"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -150,6 +136,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 dependencies = [
  "getrandom",
+]
+
+[[package]]
+name = "roguelike"
+version = "0.1.0"
+dependencies = [
+ "bresenham",
+ "getrandom",
+ "json",
+ "lazy_static",
+ "mut_static",
+ "rand",
+ "text_io",
+ "wasm-bindgen",
 ]
 
 [[package]]
