@@ -1,0 +1,87 @@
+<html>
+
+<head>
+	<style>
+		body {
+			background-color: black;
+			color: white;
+		}
+
+		#wrapper {
+			height: 100%;
+			width: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			user-select: none;
+			font-size: 20px;
+			overflow: hidden;
+		}
+
+		#content {
+			display: flex;
+			flex-direction: column;
+		}
+
+		#content div {
+			display: inline-flex;
+			justify-content: center;
+			align-items: center;
+			width: 20px;
+			height: 20px;
+		}
+	</style>
+	<script type="module">
+		import init, { click } from './pkg/learn.js';
+		window.wasmclick = click;
+		await init();
+
+		window.fnc = function c(x, y) {
+			render(window.wasmclick(x, y));
+		}
+
+		function render(wasm_out) {
+			let canvases = JSON.parse(wasm_out)["canvases"];
+			let canvas = canvases[0];
+			console.log(canvas);
+			let content = document.getElementById("content");
+			content.innerText = "";
+			for (let x in canvas) {
+				let row_div = document.createElement("div");
+				for (let y in canvas[x]) {
+					let elem = document.createElement("div");
+					if ("bg" in canvas[x][y]) {
+						elem.style.backgroundColor = canvas[x][y]["bg"];
+					}
+					let char_elem = document.createElement("pre");
+					char_elem.innerText = canvas[x][y]["c"];
+					elem.appendChild(char_elem);
+					elem.setAttribute("onclick", "window.fnc(" + x + "," + y + ")");
+					row_div.appendChild(elem);
+				}
+				content.appendChild(row_div);
+			}
+		}
+
+		window.fnc(0, 0);
+
+	</script>
+</head>
+
+<body>
+	<div id="wrapper">
+		<pre id="content">
+			<div>
+				<div>l</div>
+				<div>o</div>
+				<div>a</div>
+				<div>d</div>
+				<div>i</div>
+				<div>n</div>
+				<div>g</div>
+			</div>
+		</pre>
+	</div>
+</body>
+
+</html>

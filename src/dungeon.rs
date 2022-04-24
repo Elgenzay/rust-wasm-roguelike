@@ -20,7 +20,6 @@ pub mod dungeon {
 		children: Option<Box<[SubDungeon; 2]>>,
 		region: Region,
 		room: Option<Region>,
-		hallway: Option<(Region, Option<Region>)>,
 	}
 
 	enum SplitDirection {
@@ -35,7 +34,6 @@ pub mod dungeon {
 				children: None,
 				region,
 				room: None,
-				hallway: None,
 			}
 		}
 
@@ -59,7 +57,6 @@ pub mod dungeon {
 			let min_child_length = (region_length as f32
 				* (((100.0 - config.subdungeon_random_split_range as f32) / 2.0) * 0.01))
 				as i32;
-			//println!("min_child_length: {}", min_child_length);
 			if min_child_length < min_room_length {
 				if matches!(split_direction, SplitDirection::Random) {
 					if vertical {
@@ -106,13 +103,11 @@ pub mod dungeon {
 					children: None,
 					region: new_regions.0,
 					room: None,
-					hallway: None,
 				},
 				SubDungeon {
 					children: None,
 					region: new_regions.1,
 					room: None,
-					hallway: None,
 				},
 			]));
 			let iteration = iteration + 1;

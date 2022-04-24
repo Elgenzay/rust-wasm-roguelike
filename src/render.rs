@@ -4,6 +4,7 @@ pub mod canvas {
 	use std::collections::HashMap;
 
 	/// A block of text with a coordinate system
+	#[derive(Clone)]
 	pub struct Canvas {
 		/// A two dimensional array of chars representing the canvas.
 		///
@@ -16,14 +17,30 @@ pub mod canvas {
 		/// canvas.map[0][0] = 'h';
 		/// canvas.map[1][0] = 'i';
 		/// ```
-		map: HashMap<i32, HashMap<i32, CanvasUnit>>,
-		width: i32,
-		height: i32,
+		pub map: HashMap<i32, HashMap<i32, CanvasUnit>>,
+		pub width: i32,
+		pub height: i32,
+	}
+
+	#[derive(Copy, Clone)]
+	pub enum Color {
+		White,
+		Black,
+	}
+
+	impl Color {
+		pub fn as_string(&self) -> String {
+			match self {
+				Color::White => String::from("white"),
+				Color::Black => String::from("black"),
+			}
+		}
 	}
 
 	#[derive(Copy, Clone)]
 	pub struct CanvasUnit {
 		pub character: char,
+		pub bg_color: Color,
 		pub on_click: super::engine::Action,
 	}
 
@@ -31,7 +48,8 @@ pub mod canvas {
 		fn empty() -> CanvasUnit {
 			CanvasUnit {
 				character: ' ',
-				on_click: super::engine::Action::NONE,
+				bg_color: Color::Black,
+				on_click: super::engine::Action::None,
 			}
 		}
 	}
@@ -71,6 +89,7 @@ pub mod canvas {
 			x: X,
 			y: Y,
 			c: char,
+			bg_color: Color,
 			action: super::engine::Action,
 		) {
 			let x_i32 = &x.into();
@@ -86,6 +105,7 @@ pub mod canvas {
 				*y_i32,
 				CanvasUnit {
 					character: c,
+					bg_color,
 					on_click: action,
 				},
 			);
@@ -124,11 +144,12 @@ pub mod canvas {
 			fill_from: super::engine::Coordinate,
 			fill_to: super::engine::Coordinate,
 			fill: char,
+			bg_color: Color,
 		) {
 			let new_coords = sort_coordinates(fill_from, fill_to);
 			for x in new_coords[0].x..(new_coords[1].x + 1) {
 				for y in new_coords[0].y..(new_coords[1].y + 1) {
-					self.set(x, y, fill, super::engine::Action::NONE);
+					self.set(x, y, fill, bg_color, super::engine::Action::None);
 				}
 			}
 		}
@@ -178,46 +199,54 @@ pub mod canvas {
 				draw_from,
 				super::engine::Coordinate::new(draw_from.x, draw_to.y),
 				fill_chars[5],
+				Color::Black,
 			);
 			self.fill(
 				draw_from,
 				super::engine::Coordinate::new(draw_to.x, draw_from.y),
 				fill_chars[4],
+				Color::Black,
 			);
 			self.fill(
 				super::engine::Coordinate::new(draw_from.x, draw_to.y),
 				draw_to,
 				fill_chars[4],
+				Color::Black,
 			);
 			self.fill(
 				super::engine::Coordinate::new(draw_to.x, draw_from.y),
 				draw_to,
 				fill_chars[5],
+				Color::Black,
 			);
 			let new_coords = sort_coordinates(draw_from, draw_to);
 			self.set(
 				new_coords[0].x,
 				new_coords[0].y,
 				fill_chars[3],
-				super::engine::Action::NONE,
+				Color::Black,
+				super::engine::Action::None,
 			);
 			self.set(
 				new_coords[1].x,
 				new_coords[1].y,
 				fill_chars[1],
-				super::engine::Action::NONE,
+				Color::Black,
+				super::engine::Action::None,
 			);
 			self.set(
 				new_coords[0].x,
 				new_coords[1].y,
 				fill_chars[0],
-				super::engine::Action::NONE,
+				Color::Black,
+				super::engine::Action::None,
 			);
 			self.set(
 				new_coords[1].x,
 				new_coords[0].y,
 				fill_chars[2],
-				super::engine::Action::NONE,
+				Color::Black,
+				super::engine::Action::None,
 			);
 		}
 
@@ -307,7 +336,8 @@ pub mod canvas {
 							container_coords[0].x + x,
 							container_coords[1].y - y,
 							text_box_characters[char_index].character,
-							super::engine::Action::NONE,
+							Color::Black,
+							super::engine::Action::None,
 						);
 					}
 					if word_length > 0 {

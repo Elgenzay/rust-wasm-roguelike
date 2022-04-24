@@ -1,6 +1,6 @@
 pub mod engine {
-	use crate::area::Area;
-	use crate::canvas::{Canvas, sort_coordinates};
+	use crate::render::canvas::{sort_coordinates, Canvas, Color};
+	use crate::world::world::area::Area;
 	use bresenham::Bresenham;
 
 	pub struct Player {
@@ -21,26 +21,25 @@ pub mod engine {
 			for b in screen_coordinates[0].y..screen_coordinates[1].y {
 				let x: i32 = player.location.x - (c_x - a);
 				let y: i32 = player.location.y - (c_y - b);
-				let char = if Coordinate::new(x,y) == player.location {
-					'O'
-				} else if is_visible(player, Coordinate::new(x,y)) {
-					let tile = player.area.get_tile_at(x, y);
+				let tile = player.area.get_tile_at(x, y);
+				let (char, bg_color) = if Coordinate::new(x, y) == player.location {
+					('O', Color::Black)
+				} else if is_visible(player, Coordinate::new(x, y)) {
 					player.discovered_area.set_tile(x, y, tile.clone());
-					let char = tile.get_char();
-					if char == ' ' {
-						'.'
+					if tile.contents.len() == 0 {
+						('.', Color::Black)
 					} else {
-						char
+						(tile.get_char(), tile.get_bgcolor())
 					}
 				} else {
-					player.discovered_area.get_tile_at(x,y).get_char()
+					(
+						player.discovered_area.get_tile_at(x, y).get_char(),
+						player.discovered_area.get_tile_at(x, y).get_bgcolor(),
+					)
 				};
-				player.canvas.set(
-					a,
-					b,
-					char,
-					Action::MOVE(Coordinate::new(x, y)),
-				);
+				player
+					.canvas
+					.set(a, b, char, bg_color, Action::Move(Coordinate::new(x, y)));
 			}
 		}
 	}
@@ -48,8 +47,10 @@ pub mod engine {
 	fn is_visible(player: &mut Player, location: Coordinate) -> bool {
 		for (x, y) in Bresenham::new(player.location.as_tuple(), location.as_tuple()) {
 			let (x, y) = (x as i32, y as i32);
-			if player.area.get_tile_at(x,y).contents.len() != 0 && Coordinate::new(x,y) != location {
-				return false
+			if player.area.get_tile_at(x, y).contents.len() != 0
+				&& Coordinate::new(x, y) != location
+			{
+				return false;
 			}
 		}
 		return true;
@@ -82,7 +83,10 @@ pub mod engine {
 		}
 
 		pub fn as_tuple<T: TryFrom<i32>>(&self) -> (T, T) {
-			(T::try_from(self.x).ok().unwrap(), T::try_from(self.y).ok().unwrap())
+			(
+				T::try_from(self.x).ok().unwrap(),
+				T::try_from(self.y).ok().unwrap(),
+			)
 		}
 	}
 
@@ -94,7 +98,7 @@ pub mod engine {
 
 	#[derive(Copy, Clone)]
 	pub enum Action {
-		NONE,
-		MOVE(Coordinate),
+		None,
+		Move(Coordinate),
 	}
 }

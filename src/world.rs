@@ -60,7 +60,8 @@ pub mod world {
 
 	pub mod area {
 		use crate::engine::engine::Coordinate;
-		use crate::region::Region;
+		use crate::render::canvas::Color;
+		use crate::world::world::region::Region;
 		use rand::Rng;
 		use std::collections::HashMap;
 
@@ -185,7 +186,11 @@ pub mod world {
 				};
 			}
 
-			pub fn get_valid_hallways(&mut self, region_1: &Region, region_2: &Region) -> Vec<Hallway> {
+			pub fn get_valid_hallways(
+				&mut self,
+				region_1: &Region,
+				region_2: &Region,
+			) -> Vec<Hallway> {
 				let regions = if region_2.position.y > region_1.position.y {
 					[region_1, region_2]
 				} else {
@@ -435,6 +440,16 @@ pub mod world {
 				}
 				' '
 			}
+
+			pub fn get_bgcolor(&self) -> Color {
+				for obj in &self.contents {
+					let color = obj.get_bgcolor();
+					if !matches!(color, Color::Black) {
+						return color;
+					}
+				}
+				Color::Black
+			}
 		}
 
 		#[derive(Copy, Clone)]
@@ -447,7 +462,13 @@ pub mod world {
 			fn get_char(&self) -> Option<char> {
 				match &self {
 					WorldObject::PLAYER => Some('O'),
-					WorldObject::WALL => Some('█'),
+					WorldObject::WALL => Some(' '),
+				}
+			}
+			fn get_bgcolor(&self) -> Color {
+				match &self {
+					WorldObject::WALL => Color::White,
+					_ => Color::Black,
 				}
 			}
 		}
