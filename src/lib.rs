@@ -75,33 +75,20 @@ pub fn click(x: i32, y: i32) -> String {
 	let edge = player.canvas.width - 1;
 	let top = player.canvas.height - 1;
 	let mut canvases = vec![];
+	let mut draw = |player: &mut Player| {
+		draw_area(player, Coordinate::new(1, 1), Coordinate::new(edge, top));
+		canvases.push(player.canvas.clone());
+	};
 	match canvas_unit_at_click.on_click {
 		Action::Move(coord) => {
 			for (x, y) in Bresenham::new(player.location.as_tuple(), coord.as_tuple()) {
 				player.location = Coordinate::new(x as i32, y as i32);
-				draw_area(
-					&mut player,
-					Coordinate::new(1, 1),
-					Coordinate::new(edge, top),
-				);
-				canvases.push(player.canvas.clone());
+				draw(&mut player);
 			}
 			player.location = coord;
-			draw_area(
-				&mut player,
-				Coordinate::new(1, 1),
-				Coordinate::new(edge, top),
-			);
-			canvases.push(player.canvas.clone()); //TODO use closure
 		}
-		_ => {
-			draw_area(
-				&mut player,
-				Coordinate::new(1, 1),
-				Coordinate::new(edge, top),
-			);
-			canvases.push(player.canvas.clone());
-		}
+		_ => (),
 	};
+	draw(&mut player);
 	canvas_vector_to_string(canvases)
 }
