@@ -46,8 +46,13 @@
 		window.wasmclick = click;
 		await init();
 
+		window.clickready = true;
+		
 		window.fnc = function c(x, y) {
-			render(window.wasmclick(x, y));
+			if (window.clickready){
+				window.clickready = false;
+				render(window.wasmclick(x, y));
+			}
 		}
 
 		function render(wasm_out) {
@@ -101,6 +106,7 @@
 				window.frame++;
 				if (window.frame === canvases.length){
 					clearInterval(interval);
+					window.clickready = true;
 				}
 			}, 1);
 		}
