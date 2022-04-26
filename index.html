@@ -70,38 +70,39 @@
 					content.appendChild(row_div);
 				}
 			}
-			for (let i in canvases) {
-				window.frame = 0;
-				let canvas = canvases[i];
-				setTimeout(() => {
-					for (let x in canvas) {
-						for (let y in canvas[x]) {
-							let elem = window.elems[x][y];
-							if ("bg" in canvas[x][y]) {
-								elem.style.backgroundColor = canvas[x][y]["bg"];
-							} else {
-								elem.style.backgroundColor = null;
+			window.frame = 0;
+			let interval = setInterval(() => {
+				let canvas = canvases[window.frame];
+				for (let x in canvas) {
+					for (let y in canvas[x]) {
+						let elem = window.elems[x][y];
+						if ("bg" in canvas[x][y]) {
+							elem.style.backgroundColor = canvas[x][y]["bg"];
+						} else {
+							elem.style.backgroundColor = null;
+						}
+						if (canvas[x][y]["c"] === " " && "bg" in canvas[x][y]) {
+							elem.innerText = ".";
+							elem.style.color = canvas[x][y]["bg"];
+						} else {
+							elem.innerText = canvas[x][y]["c"];
+						}
+						if (window.frame === canvases.length - 1) {
+							elem.setAttribute("onmousedown", "window.fnc(" + x + "," + y + ")");
+							if ("m" in canvas[x][y]) {
+								elem.classList.add("nav");
 							}
-							if (canvas[x][y]["c"] === " " && "bg" in canvas[x][y]) {
-								elem.innerText = ".";
-								elem.style.color = canvas[x][y]["bg"];
-							} else {
-								elem.innerText = canvas[x][y]["c"];
-							}
-							if (window.frame === canvases.length - 1) {
-								elem.setAttribute("onmousedown", "window.fnc(" + x + "," + y + ")");
-								if ("m" in canvas[x][y]) {
-									elem.classList.add("nav");
-								}
-							} else if (window.frame === 0) {
-								elem.classList.remove("nav");
-								elem.removeAttribute("onmousedown");
-							}
+						} else if (window.frame === 0) {
+							elem.classList.remove("nav");
+							elem.removeAttribute("onmousedown");
 						}
 					}
-					window.frame++;
-				}, 64 * i);
-			}
+				}
+				window.frame++;
+				if (window.frame === canvases.length){
+					clearInterval(interval);
+				}
+			}, 1);
 		}
 
 		window.fnc(0, 0);
