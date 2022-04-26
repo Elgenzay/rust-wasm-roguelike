@@ -5,6 +5,25 @@
 		body {
 			background-color: black;
 			color: white;
+			font-family: Verdana, Geneva, Tahoma, sans-serif;
+		}
+
+		#info {
+			position: fixed;
+			outline: dashed gray 1px;
+			width: 300px;
+			text-align: center;
+			padding: 10px;
+			background-color: black;
+		}
+
+		.clickable-text {
+			cursor: pointer;
+			color: #3391ff;
+		}
+
+		.clickable-text:hover {
+			text-decoration: underline;
 		}
 
 		#wrapper {
@@ -47,9 +66,9 @@
 		await init();
 
 		window.clickready = true;
-		
+
 		window.fnc = function c(x, y) {
-			if (window.clickready){
+			if (window.clickready) {
 				window.clickready = false;
 				render(window.wasmclick(x, y));
 			}
@@ -62,11 +81,11 @@
 				let content = document.getElementById("content");
 				content.innerHTML = "";
 				let canvas = canvases[0];
-				for (let y = canvases[0][0].length-1; y >= 0; y--) {
+				for (let y = canvases[0][0].length - 1; y >= 0; y--) {
 					let row_div = document.createElement("div");
 					for (let x = 0; x < canvases[0].length; x++) {
 						let elem = document.createElement("div");
-						if (!(x in window.elems)){
+						if (!(x in window.elems)) {
 							window.elems[x] = [];
 						}
 						window.elems[x][y] = elem;
@@ -104,7 +123,7 @@
 					}
 				}
 				window.frame++;
-				if (window.frame === canvases.length){
+				if (window.frame === canvases.length) {
 					clearInterval(interval);
 					window.clickready = true;
 				}
@@ -117,6 +136,33 @@
 </head>
 
 <body>
+	<div id="info">
+		<span id="whatisthis" class="clickable-text" onclick="toggleInfo()">
+			What is this?
+		</span>
+		<div id="expandedinfo" style="display:none">
+			This is a Rust learning project.<br />
+			It is a bare-bones roguelike engine written in Rust and compiled to WebAssembly.<br />
+			It is open-source on <a class="clickable-text"
+				href="https://github.com/Elgenzay/rust-wasm-roguelike">GitHub</a>.
+			<div class="clickable-text" style="padding-top:10px" onclick="toggleInfo()">
+				Close
+			</div>
+		</div>
+		<script>
+			function toggleInfo() {
+				let whatisthis = document.getElementById("whatisthis");
+				let expandedinfo = document.getElementById("expandedinfo");
+				if (whatisthis.style.display !== "none") {
+					whatisthis.style.display = "none";
+					expandedinfo.style.display = "unset";
+				} else {
+					whatisthis.style.display = "unset";
+					expandedinfo.style.display = "none";
+				}
+			}
+		</script>
+	</div>
 	<div id="wrapper">
 		<pre id="content">
 			<div>
