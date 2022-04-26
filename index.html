@@ -57,12 +57,13 @@
 				let content = document.getElementById("content");
 				content.innerHTML = "";
 				let canvas = canvases[0];
-				for (let x in canvas) {
+				for (let y = canvases[0][0].length-1; y >= 0; y--) {
 					let row_div = document.createElement("div");
-					window.elems[x] = [];
-					for (let y in canvas[x]) {
+					for (let x = 0; x < canvases[0].length; x++) {
 						let elem = document.createElement("div");
-						elem.setAttribute("onmousedown", "window.fnc(" + x + "," + y + ")");
+						if (!(x in window.elems)){
+							window.elems[x] = [];
+						}
 						window.elems[x][y] = elem;
 						row_div.appendChild(elem);
 					}

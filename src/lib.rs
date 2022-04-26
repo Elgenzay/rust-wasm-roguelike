@@ -34,7 +34,7 @@ lazy_static! {
 			area: dungeon.area,
 			discovered_area: Area::new(None),
 			location: dungeon.spawn_point,
-			canvas: Canvas::new(50, 110),
+			canvas: Canvas::new(100, 50),
 		})
 	};
 }
