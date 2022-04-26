@@ -26,6 +26,8 @@ pub mod canvas {
 	pub enum Color {
 		White,
 		Black,
+		Gray,
+		DarkGray,
 	}
 
 	impl Color {
@@ -33,6 +35,8 @@ pub mod canvas {
 			match self {
 				Color::White => String::from("white"),
 				Color::Black => String::from("black"),
+				Color::Gray => String::from("#333"),
+				Color::DarkGray => String::from("#111"),
 			}
 		}
 	}

@@ -14,36 +14,45 @@ pub mod engine {
 		let screen_coordinates = sort_coordinates(screen_coord_1, screen_coord_2);
 		let width = screen_coordinates[1].x - screen_coordinates[0].x + 1;
 		let height = screen_coordinates[1].y - screen_coordinates[0].y + 1;
-		//c_x and c_y are the x and y of the center of the selection on the canvas
-		let c_x = (width / 2) + screen_coordinates[0].x;
-		let c_y = (height / 2) + screen_coordinates[0].y;
-		for a in screen_coordinates[0].x..screen_coordinates[1].x {
-			for b in screen_coordinates[0].y..screen_coordinates[1].y {
-				let x: i32 = player.location.x - (c_x - a);
-				let y: i32 = player.location.y - (c_y - b);
+		let screen_center_x = (width / 2) + screen_coordinates[0].x;
+		let screen_center_y = (height / 2) + screen_coordinates[0].y;
+		for screen_x in screen_coordinates[0].x..screen_coordinates[1].x {
+			for screen_y in screen_coordinates[0].y..screen_coordinates[1].y {
+				let x: i32 = player.location.x - (screen_center_x - screen_x);
+				let y: i32 = player.location.y - (screen_center_y - screen_y);
 				let tile = player.area.get_tile_at(x, y);
 				let visible = is_visible(player, Coordinate::new(x, y));
 				let (char, bg_color) = if Coordinate::new(x, y) == player.location {
-					('O', Color::Black)
+					('O', Color::Gray)
 				} else if visible {
 					player.discovered_area.set_tile(x, y, tile.clone());
 					if tile.contents.len() == 0 {
-						('.', Color::Black)
+						(' ', Color::Gray)
 					} else {
 						(tile.get_char(), tile.get_bgcolor())
 					}
 				} else {
+					let bgcolor = player.discovered_area.get_tile_at(x, y).get_bgcolor();
 					(
 						player.discovered_area.get_tile_at(x, y).get_char(),
-						player.discovered_area.get_tile_at(x, y).get_bgcolor(),
+						if player.discovered_area.tile_exists(x, y) {
+							if matches!(bgcolor, Color::Black) {
+								Color::DarkGray
+							} else {
+								bgcolor
+							}
+						} else {
+							bgcolor
+						},
 					)
 				};
 				player.canvas.set(
-					a,
-					b,
+					screen_x,
+					screen_y,
 					char,
 					bg_color,
-					if visible && !tile.contains_wall() {
+					if visible && !tile.contains_wall() && Coordinate::new(x, y) != player.location
+					{
 						Action::Move(Coordinate::new(x, y))
 					} else {
 						Action::None
