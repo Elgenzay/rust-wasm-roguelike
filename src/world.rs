@@ -352,42 +352,24 @@ pub mod world {
 			pub fn get_tile_at<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> Tile {
 				let x_i32 = &x.into();
 				let y_i32 = &y.into();
-
-				let x_col = match self.map.get(x_i32) {
-					Some(x_val) => x_val,
-					None => {
-						return match &self.default_fill {
-							Some(obj) => Tile {
-								contents: vec![*obj],
-							},
-							None => Tile { contents: vec![] },
-						};
-					}
-				};
-
-				match x_col.get(y_i32) {
-					Some(tile) => tile.clone(),
-					None => match &self.default_fill {
-						Some(obj) => Tile {
-							contents: vec![*obj],
-						},
-						None => Tile { contents: vec![] },
-					},
+				if self.tile_exists(*x_i32, *y_i32) {
+					return self.map.get(x_i32).unwrap().get(y_i32).unwrap().clone();
 				}
+				Tile { contents: vec![] }
 			}
 
 			pub fn tile_exists<X: Into<i32>, Y: Into<i32>>(&self, x: X, y: Y) -> bool {
-				let x_i32 = &x.into();
-				let y_i32 = &y.into();
+				let x_i32 = x.into();
+				let y_i32 = y.into();
 
-				let x_col = match self.map.get(x_i32) {
+				let x_col = match self.map.get(&x_i32) {
 					Some(x_val) => x_val,
 					None => {
 						return false;
 					}
 				};
 
-				match x_col.get(y_i32) {
+				match x_col.get(&y_i32) {
 					Some(_) => {
 						return true;
 					}
