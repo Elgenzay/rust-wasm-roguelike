@@ -487,14 +487,14 @@ pub mod world {
 				' '
 			}
 
-			pub fn get_bgcolor(&self) -> Color {
+			pub fn get_bgcolor(&self) -> Option<Color> {
 				for obj in &self.contents {
 					let color = obj.get_bgcolor();
 					if !matches!(color, Color::Black) {
-						return color;
+						return Some(color);
 					}
 				}
-				Color::Black
+				None
 			}
 		}
 

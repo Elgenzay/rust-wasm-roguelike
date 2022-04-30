@@ -23,11 +23,11 @@ pub mod engine {
 				let tile = player.area.get_tile_at(x, y);
 				let visible = is_visible(player, Coordinate::new(x, y));
 				let (char, bg_color) = if Coordinate::new(x, y) == player.location {
-					('O', Color::Gray)
+					('O', Some(Color::Gray))
 				} else if visible {
 					player.discovered_area.set_tile(x, y, tile.clone());
 					if tile.contents.len() == 0 {
-						(' ', Color::Gray)
+						(' ', Some(Color::Gray))
 					} else {
 						(tile.get_char(), tile.get_bgcolor())
 					}
@@ -36,8 +36,8 @@ pub mod engine {
 					(
 						player.discovered_area.get_tile_at(x, y).get_char(),
 						if player.discovered_area.tile_exists(x, y) {
-							if matches!(bgcolor, Color::Black) {
-								Color::DarkGray
+							if matches!(bgcolor, None) {
+								Some(Color::DarkGray)
 							} else {
 								bgcolor
 							}
@@ -50,7 +50,10 @@ pub mod engine {
 					screen_x,
 					screen_y,
 					char,
-					bg_color,
+					match bg_color{
+						Some(c) => c,
+						None => Color::Black
+					},
 					if visible && !tile.contains_wall() && Coordinate::new(x, y) != player.location
 					{
 						Action::Move(Coordinate::new(x, y))
