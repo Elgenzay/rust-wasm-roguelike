@@ -66,18 +66,18 @@ pub mod world {
 		use std::collections::HashMap;
 
 		pub enum Hallway {
-			STRAIGHT(
-				bool, // true if vertical
-				i32,  // y position if horizontal, or x position if vertical
-				i32,  // starting (left x/bottom y) position
-				i32,  // ending (right x/top y) position
-			),
-			BENT(
-				BoxCorner,  // orientation
-				Coordinate, // turning point
-				i32,        // horizontal distance
-				i32,        // vertical distance
-			),
+			STRAIGHT {
+				vertical: bool,
+				position: i32, // y position if horizontal, or x position if vertical
+				start: i32,    // starting (left x/bottom y) position
+				end: i32,      // ending (right x/top y) position
+			},
+			BENT {
+				orientation: BoxCorner,
+				turning_point: Coordinate,
+				horizontal_distance: i32,
+				vertical_distance: i32,
+			},
 		}
 
 		#[derive(Copy, Clone)]
@@ -127,48 +127,60 @@ pub mod world {
 					.get(rand::thread_rng().gen_range(0..valid_hallways.len()))
 					.unwrap();
 				match *hallway {
-					Hallway::STRAIGHT(is_vertical, x_y, start, end) => {
+					Hallway::STRAIGHT {
+						vertical,
+						position: x_y,
+						start,
+						end,
+					} => {
 						self.fill(
 							Coordinate::new(
-								if is_vertical { x_y - 1 } else { start },
-								if is_vertical { start } else { x_y - 1 },
+								if vertical { x_y - 1 } else { start },
+								if vertical { start } else { x_y - 1 },
 							),
 							Coordinate::new(
-								if is_vertical { x_y + 1 } else { end },
-								if is_vertical { end } else { x_y + 1 },
+								if vertical { x_y + 1 } else { end },
+								if vertical { end } else { x_y + 1 },
 							),
 							Tile::wall(),
 						);
 						self.fill(
 							Coordinate::new(
-								if is_vertical { x_y } else { start },
-								if is_vertical { start } else { x_y },
+								if vertical { x_y } else { start },
+								if vertical { start } else { x_y },
 							),
 							Coordinate::new(
-								if is_vertical { x_y } else { end },
-								if is_vertical { end } else { x_y },
+								if vertical { x_y } else { end },
+								if vertical { end } else { x_y },
 							),
 							Tile::new(None),
 						);
 					}
-					Hallway::BENT(orientation, point, d_hor, d_ver) => {
+					Hallway::BENT {
+						orientation,
+						turning_point,
+						horizontal_distance: d_hor,
+						vertical_distance: d_ver,
+					} => {
 						let x = match orientation {
-							BoxCorner::BottomRight | BoxCorner::TopRight => point.x - d_hor,
-							BoxCorner::BottomLeft | BoxCorner::TopLeft => point.x + d_hor,
+							BoxCorner::BottomRight | BoxCorner::TopRight => turning_point.x - d_hor,
+							BoxCorner::BottomLeft | BoxCorner::TopLeft => turning_point.x + d_hor,
 						};
 						let y = match orientation {
-							BoxCorner::TopRight | BoxCorner::TopLeft => point.y - d_ver,
-							BoxCorner::BottomRight | BoxCorner::BottomLeft => point.y + d_ver,
+							BoxCorner::TopRight | BoxCorner::TopLeft => turning_point.y - d_ver,
+							BoxCorner::BottomRight | BoxCorner::BottomLeft => {
+								turning_point.y + d_ver
+							}
 						};
 
 						self.fill(
-							Coordinate::new(point.x, point.y - 1),
-							Coordinate::new(x, point.y + 1),
+							Coordinate::new(turning_point.x, turning_point.y - 1),
+							Coordinate::new(x, turning_point.y + 1),
 							Tile::wall(),
 						);
 						self.fill(
-							Coordinate::new(point.x - 1, point.y),
-							Coordinate::new(point.x + 1, y),
+							Coordinate::new(turning_point.x - 1, turning_point.y),
+							Coordinate::new(turning_point.x + 1, y),
 							Tile::wall(),
 						);
 
@@ -178,10 +190,22 @@ pub mod world {
 							BoxCorner::BottomLeft => (-1, -1),
 							BoxCorner::BottomRight => (1, -1),
 						};
-						self.set_tile(point.x + corner_x, point.y + corner_y, Tile::wall());
+						self.set_tile(
+							turning_point.x + corner_x,
+							turning_point.y + corner_y,
+							Tile::wall(),
+						);
 
-						self.fill(point, Coordinate::new(x, point.y), Tile::new(None));
-						self.fill(point, Coordinate::new(point.x, y), Tile::new(None));
+						self.fill(
+							turning_point,
+							Coordinate::new(x, turning_point.y),
+							Tile::new(None),
+						);
+						self.fill(
+							turning_point,
+							Coordinate::new(turning_point.x, y),
+							Tile::new(None),
+						);
 					}
 				};
 			}
@@ -235,13 +259,13 @@ pub mod world {
 						};
 					let starting_xy = if one_y_x > two_y_x { one_y_x } else { two_y_x };
 					let ending_xy = if one_t_e > two_t_e { two_t_e } else { one_t_e };
-					for y in starting_xy + 1..ending_xy {
-						possible_hallways.push(Hallway::STRAIGHT(
+					for xy in starting_xy + 1..ending_xy {
+						possible_hallways.push(Hallway::STRAIGHT {
 							vertical,
-							y,
-							if one_x_y > two_x_y { two_e_t } else { one_e_t },
-							if one_x_y > two_x_y { one_x_y } else { two_x_y },
-						));
+							position: xy,
+							start: if one_x_y > two_x_y { two_e_t } else { one_e_t },
+							end: if one_x_y > two_x_y { one_x_y } else { two_x_y },
+						});
 					}
 				} else {
 					let possible_orientations = if regions[0].position.x < regions[1].position.x {
@@ -286,12 +310,12 @@ pub mod world {
 										(regions[1].position.x - x, y - regions[0].get_top_y())
 									}
 								};
-								possible_hallways.push(Hallway::BENT(
+								possible_hallways.push(Hallway::BENT {
 									orientation,
-									Coordinate::new(x, y),
+									turning_point: Coordinate::new(x, y),
 									horizontal_distance,
 									vertical_distance,
-								));
+								});
 							}
 						}
 					}
@@ -299,8 +323,13 @@ pub mod world {
 				let mut valid_hallways = vec![];
 				for hallway in possible_hallways {
 					let is_valid = match hallway {
-						Hallway::STRAIGHT(is_vertical, x_y, start, end) => {
-							if is_vertical {
+						Hallway::STRAIGHT {
+							vertical,
+							position: x_y,
+							start,
+							end,
+						} => {
+							if vertical {
 								self.region_is_empty(
 									Coordinate::new(x_y, start + 1),
 									Coordinate::new(x_y, end - 1),
@@ -312,30 +341,35 @@ pub mod world {
 								)
 							}
 						}
-						Hallway::BENT(orientation, point, d_hor, d_ver) => {
+						Hallway::BENT {
+							orientation,
+							turning_point,
+							horizontal_distance: d_hor,
+							vertical_distance: d_ver,
+						} => {
 							self.region_is_empty(
-								point,
+								turning_point,
 								Coordinate::new(
 									match orientation {
 										BoxCorner::BottomRight | BoxCorner::TopRight => {
-											point.x - d_hor + 1
+											turning_point.x - d_hor + 1
 										}
 										BoxCorner::BottomLeft | BoxCorner::TopLeft => {
-											point.x + d_hor - 1
+											turning_point.x + d_hor - 1
 										}
 									},
-									point.y,
+									turning_point.y,
 								),
 							) && self.region_is_empty(
-								point,
+								turning_point,
 								Coordinate::new(
-									point.x,
+									turning_point.x,
 									match orientation {
 										BoxCorner::TopRight | BoxCorner::TopLeft => {
-											point.y - d_ver + 1
+											turning_point.y - d_ver + 1
 										}
 										BoxCorner::BottomRight | BoxCorner::BottomLeft => {
-											point.y + d_ver - 1
+											turning_point.y + d_ver - 1
 										}
 									},
 								),
